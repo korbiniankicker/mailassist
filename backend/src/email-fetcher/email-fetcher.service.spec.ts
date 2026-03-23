@@ -29,6 +29,8 @@ describe('EmailFetcherService', () => {
     const res = await service.getMailboxes();
   });
   it('should find messages', async () => {
-    const res = await service.getMessages('INBOX', 10);
+    for await (let message of service.getMessages('INBOX')) {
+      expect(message).toBeDefined();
+    }
   });
 });

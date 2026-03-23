@@ -5,13 +5,15 @@ services:
     depends_on:
       - db
     build: ./backend
+    ports:
+      - "3000:3000"
 
   db:
     image: pgvector/pgvector:pg17
     container_name: pgvector-db
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_PASSWORD: password
       POSTGRES_DB: example_db
     ports:
       - "5432:5432"

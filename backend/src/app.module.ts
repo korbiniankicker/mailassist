@@ -6,6 +6,7 @@ import { EmailStoreModule } from './email-store/email-store.module';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { EmailChunk } from './email-store/emailchunk.entity';
+import { ContextModule } from './context/context.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { EmailChunk } from './email-store/emailchunk.entity';
       password: process.env.DB_PASSWORD,
       entities: [EmailChunk],
     }),
+    ContextModule,
   ],
 })
 export class AppModule {}

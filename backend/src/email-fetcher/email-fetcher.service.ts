@@ -21,6 +21,7 @@ export class EmailFetcherService {
         pass: String(process.env.IMAP_PASS),
       },
     });
+    this.connect();
   }
 
   async connect(): Promise<boolean> {
@@ -47,25 +48,21 @@ export class EmailFetcherService {
     }
   }
 
-  async getMessages(mailboxName: string, limit: number) {
+  async *getMessages(mailboxName: string) {
     let mailboxLock: MailboxLockObject =
       await this.client.getMailboxLock(mailboxName);
     try {
-      console.log(this.client.mailbox);
       if (this.client.mailbox) {
         if (this.client.mailbox.exists === 0) {
           console.log('No messages in mailbox');
           return;
         }
-        let max =
-          limit >= this.client.mailbox.exists
-            ? limit
-            : this.client.mailbox.exists;
-        let message: FetchMessageObject = (await this.client.fetchOne('*', {
+        for await (let message of this.client.fetch(`1:*`, {
           envelope: true,
           bodyStructure: true,
-        })) as FetchMessageObject;
-        console.log(message);
+        })) {
+          yield message;
+        }
       }
     } catch (error) {
       console.log('Error: ' + error);
