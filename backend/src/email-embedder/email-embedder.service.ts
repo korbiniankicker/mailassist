@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { EmailFetcherService } from '../email-fetcher/email-fetcher.service';
-import { OllamaService } from './ollama.service';
+import { OllamaService } from '../llm-connection/ollama.service';
 import { EmailStoreService } from '../email-store/email-store.service';
-import { CHUNK_SIZE, OVERLAP_SIZE } from './embedding_constants.constants';
+import { CHUNK_SIZE, OVERLAP_SIZE } from './embedding.constants';
 
 @Injectable()
 export class EmailEmbedderService {
