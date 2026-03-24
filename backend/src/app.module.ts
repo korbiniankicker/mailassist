@@ -7,7 +7,7 @@ import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { EmailChunk } from './email-store/emailchunk.entity';
 import { ContextModule } from './context/context.module';
-import { LlmConnectionModule } from './llm-connection/llm-connection.module';
+import { AiModule } from './ai/ai.module';
 
 @Module({
   imports: [
@@ -25,7 +25,7 @@ import { LlmConnectionModule } from './llm-connection/llm-connection.module';
       entities: [EmailChunk],
     }),
     ContextModule,
-    LlmConnectionModule,
+    AiModule,
   ],
 })
 export class AppModule {}

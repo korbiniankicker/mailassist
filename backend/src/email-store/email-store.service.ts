@@ -13,11 +13,15 @@ export class EmailStoreService {
 
   async storeChunk(
     _sender: string,
+    _date: Date,
+    _embeddedText: string,
     _embedding: number[],
   ): Promise<EmailChunk | null> {
     try {
       const _chunk: EmailChunk = this.chunksRepository.create({
         sender: _sender,
+        date: _date,
+        embeddedText: _embeddedText,
         embedding: _embedding,
       });
       return await this.chunksRepository.save(_chunk);

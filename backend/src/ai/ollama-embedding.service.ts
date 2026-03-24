@@ -2,8 +2,10 @@ import { HttpException, Injectable, Logger } from '@nestjs/common';
 import { IEmbeddingService } from './IEmbeddingService.interface';
 
 @Injectable()
-export class OllamaService implements IEmbeddingService {
-  constructor(private readonly logger = new Logger(OllamaService.name)) {}
+export class OllamaEmbeddingService implements IEmbeddingService {
+  constructor(
+    private readonly logger = new Logger(OllamaEmbeddingService.name),
+  ) {}
 
   async getEmbedding(text: string): Promise<number[]> {
     let response = await fetch(String(process.env.OLLAMA_URL_EMBED), {

@@ -1,26 +1,43 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { EmailFetcherService } from '../email-fetcher/email-fetcher.service';
-import { OllamaService } from '../llm-connection/ollama.service';
+import { OllamaEmbeddingService } from '../ai/ollama-embedding.service';
 import { EmailStoreService } from '../email-store/email-store.service';
 import { CHUNK_SIZE, OVERLAP_SIZE } from './embedding.constants';
+import { warn } from 'console';
 
 @Injectable()
 export class EmailEmbedderService {
   constructor(
     private emailFetcherService: EmailFetcherService,
     private emailStoreService: EmailStoreService,
-    private ollamaService: OllamaService,
+    private ollamaService: OllamaEmbeddingService,
+    private readonly logger: Logger = new Logger(EmailEmbedderService.name),
   ) {}
 
-  async *filterEmails(): AsyncGenerator<{ sender: string; content: string }> {
+  async *filterEmails(): AsyncGenerator<{
+    sender: string;
+    content: string;
+    date: Date;
+  }> {
     for await (let message of this.emailFetcherService.getMessages('INBOX')) {
-      const sender: string = message.envelope?.sender?.toString() ?? '';
-      const message_content: string = message.source?.toString() ?? '';
-      yield { sender: sender, content: message_content };
+      const sender: string | undefined =
+        message.envelope?.sender?.toString() ?? undefined;
+      const message_content: string | undefined =
+        message.source?.toString() ?? undefined;
+      const date: Date | undefined = message.envelope?.date ?? undefined;
+      if (!sender || !message_content || !date) {
+        Logger.warn(
+          'Unable to fully fetch Email information. E-Mail has been skipped, conituning to next E-Mal',
+        );
+        continue;
+      }
+      yield { sender: sender, content: message_content, date: date };
     }
   }
 
   async *chunkEmails(): AsyncGenerator<{
+    embeddedText: string;
+    date: Date;
     embedding: number[];
     sender: string;
   }> {
@@ -30,17 +47,32 @@ export class EmailEmbedderService {
         const chunk = buffer.slice(0, CHUNK_SIZE + OVERLAP_SIZE * 2);
         buffer = buffer.slice(CHUNK_SIZE + OVERLAP_SIZE);
         const embedding = await this.ollamaService.getEmbedding(chunk);
-        yield { embedding: embedding, sender: mail.sender };
+        yield {
+          embeddedText: chunk,
+          date: mail.date,
+          embedding: embedding,
+          sender: mail.sender,
+        };
       }
       if (buffer.length > 0) {
         const embedding = await this.ollamaService.getEmbedding(buffer);
-        yield { embedding, sender: mail.sender };
+        yield {
+          embeddedText: buffer,
+          date: mail.date,
+          embedding: embedding,
+          sender: mail.sender,
+        };
       }
     }
   }
   async storeEmailEmbeddings() {
     for await (let chunk of this.chunkEmails()) {
-      this.emailStoreService.storeChunk(chunk.sender, chunk.embedding);
+      this.emailStoreService.storeChunk(
+        chunk.sender,
+        chunk.date,
+        chunk.embeddedText,
+        chunk.embedding,
+      );
     }
   }
   async embedEmails() {
