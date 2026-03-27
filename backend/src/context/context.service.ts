@@ -14,12 +14,11 @@ export class ContextService {
     private readonly logger: Logger = new Logger(ContextService.name),
   ) {}
 
-  async fetchContext(promt: string): Promise<number[][]> {
+  async fetchContext(promt: string): Promise<EmailChunk[]> {
     const promtEmbedding: number[] =
       await this.embeddingService.getEmbedding(promt);
     const response = await this.chunksRepository
       .createQueryBuilder()
-      .select('embedding')
       .from(EmailChunk, 'chunk')
       .where('(embedding <=> :promptEmbedding) <= :MIN_SIMILARITY', {
         promtEmbedding: promtEmbedding,
@@ -29,10 +28,7 @@ export class ContextService {
       .setParameter('promtEmbedding', promtEmbedding)
       .limit(MAX_CONTEXT_CHUNKS)
       .getMany();
-    let contextVectors: number[][] = [];
-    response.forEach((ro) => {
-      contextVectors.push(ro.embedding);
-    });
-    return contextVectors;
+
+    return response;
   }
 }

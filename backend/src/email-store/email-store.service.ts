@@ -11,18 +11,14 @@ export class EmailStoreService {
     private readonly logger: Logger = new Logger(EmailStoreService.name),
   ) {}
 
-  async storeChunk(
-    _sender: string,
-    _date: Date,
-    _embeddedText: string,
-    _embedding: number[],
-  ): Promise<EmailChunk | null> {
+  async storeChunk(emailChunk: EmailChunk): Promise<EmailChunk | null> {
     try {
       const _chunk: EmailChunk = this.chunksRepository.create({
-        sender: _sender,
-        date: _date,
-        embeddedText: _embeddedText,
-        embedding: _embedding,
+        subject: emailChunk.subject ?? '',
+        sender: emailChunk.sender ?? '',
+        date: emailChunk.date ?? '',
+        embeddedText: emailChunk.embeddedText ?? '',
+        embedding: emailChunk.embedding ?? [],
       });
       return await this.chunksRepository.save(_chunk);
     } catch (error) {

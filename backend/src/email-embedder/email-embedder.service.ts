@@ -4,6 +4,7 @@ import { OllamaEmbeddingService } from '../ai/ollama-embedding.service';
 import { EmailStoreService } from '../email-store/email-store.service';
 import { CHUNK_SIZE, OVERLAP_SIZE } from './embedding.constants';
 import { warn } from 'console';
+import { EmailChunk } from 'src/email-store/emailchunk.entity';
 
 @Injectable()
 export class EmailEmbedderService {
@@ -17,6 +18,7 @@ export class EmailEmbedderService {
   async *filterEmails(): AsyncGenerator<{
     sender: string;
     content: string;
+    subject: string;
     date: Date;
   }> {
     for await (let message of this.emailFetcherService.getMessages('INBOX')) {
@@ -25,13 +27,20 @@ export class EmailEmbedderService {
       const message_content: string | undefined =
         message.source?.toString() ?? undefined;
       const date: Date | undefined = message.envelope?.date ?? undefined;
-      if (!sender || !message_content || !date) {
+      const subject: string | undefined =
+        message.envelope?.subject ?? undefined;
+      if (!sender || !message_content || !date || !subject) {
         Logger.warn(
           'Unable to fully fetch Email information. E-Mail has been skipped, conituning to next E-Mal',
         );
         continue;
       }
-      yield { sender: sender, content: message_content, date: date };
+      yield {
+        sender: sender,
+        content: message_content,
+        subject: subject,
+        date: date,
+      };
     }
   }
 
@@ -40,9 +49,13 @@ export class EmailEmbedderService {
     date: Date;
     embedding: number[];
     sender: string;
+    subject: string;
   }> {
     for await (const mail of this.filterEmails()) {
-      let buffer = `Sent by: ${mail.sender}\n${mail.content}`;
+      let buffer = `From: ${mail.sender}\n
+                    Date: ${mail.date}\n
+                    Subject: ${mail.subject}\n
+                    Content: ${mail.content}`;
       while (buffer.length > CHUNK_SIZE + OVERLAP_SIZE * 2) {
         const chunk = buffer.slice(0, CHUNK_SIZE + OVERLAP_SIZE * 2);
         buffer = buffer.slice(CHUNK_SIZE + OVERLAP_SIZE);
@@ -52,6 +65,7 @@ export class EmailEmbedderService {
           date: mail.date,
           embedding: embedding,
           sender: mail.sender,
+          subject: mail.subject,
         };
       }
       if (buffer.length > 0) {
@@ -61,18 +75,14 @@ export class EmailEmbedderService {
           date: mail.date,
           embedding: embedding,
           sender: mail.sender,
+          subject: mail.subject,
         };
       }
     }
   }
   async storeEmailEmbeddings() {
     for await (let chunk of this.chunkEmails()) {
-      this.emailStoreService.storeChunk(
-        chunk.sender,
-        chunk.date,
-        chunk.embeddedText,
-        chunk.embedding,
-      );
+      this.emailStoreService.storeChunk(chunk as EmailChunk);
     }
   }
   async embedEmails() {

@@ -9,6 +9,9 @@ export class EmailChunk {
   @Column()
   sender: string;
 
+  @Column()
+  subject: string;
+
   @Column('typestamptz')
   date: Date;
 
