@@ -5,15 +5,22 @@ import {
   SubscribeMessage,
   WebSocketGateway,
 } from '@nestjs/websockets';
+import { ChatService } from './chat.service';
 
 @WebSocketGateway()
 export class ChatGateway {
+  constructor(private readonly chatService: ChatService) {}
+
   @SubscribeMessage('query')
-  handleMessage(
-    @MessageBody('prompt') promt: string,
+  async handleMessage(
+    @MessageBody() data: any,
     @ConnectedSocket() client: Socket,
   ) {
-    //TODO iterate over ollama response tokens and send back to client
-    client.emit('response', 'hello world');
+    console.log('raw data:', data); // log exactly what arrives
+    console.log('data type:', typeof data); // is it a string or object?
+    console.log('data keys:', Object.keys(data || {}));
+    for await (let chunk of this.chatService.generateResponse(data.prompt)) {
+      client.emit('response', chunk);
+    }
   }
 }

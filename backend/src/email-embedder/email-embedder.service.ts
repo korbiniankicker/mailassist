@@ -1,9 +1,8 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { EmailFetcherService } from '../email-fetcher/email-fetcher.service';
-import { OllamaEmbeddingService } from '../ai/ollama-embedding.service';
+import { OllamaEmbeddingService } from '../ai-embedder/ollama-embedding.service';
 import { EmailStoreService } from '../email-store/email-store.service';
 import { CHUNK_SIZE, OVERLAP_SIZE } from './embedding.constants';
-import { warn } from 'console';
 import { EmailChunk } from 'src/email-store/emailchunk.entity';
 
 @Injectable()
@@ -12,7 +11,6 @@ export class EmailEmbedderService {
     private emailFetcherService: EmailFetcherService,
     private emailStoreService: EmailStoreService,
     private ollamaService: OllamaEmbeddingService,
-    private readonly logger: Logger = new Logger(EmailEmbedderService.name),
   ) {}
 
   async *filterEmails(): AsyncGenerator<{
@@ -30,9 +28,9 @@ export class EmailEmbedderService {
       const subject: string | undefined =
         message.envelope?.subject ?? undefined;
       if (!sender || !message_content || !date || !subject) {
-        Logger.warn(
-          'Unable to fully fetch Email information. E-Mail has been skipped, conituning to next E-Mal',
-        );
+        //Logger.warn(
+        //  'Unable to fully fetch Email information. E-Mail has been skipped, conituning to next E-Mal',
+        //);
         continue;
       }
       yield {

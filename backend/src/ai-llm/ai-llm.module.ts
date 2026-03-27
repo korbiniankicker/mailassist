@@ -1,9 +1,10 @@
 import { Module } from '@nestjs/common';
-import { OllamaEmbeddingService } from '../ai-embedder/ollama-embedding.service';
 import { OllamaLlmService } from './ollama-llm.service';
+import { ContextModule } from 'src/context/context.module';
 
 @Module({
-  providers: [OllamaEmbeddingService],
+  imports: [ContextModule],
+  providers: [OllamaLlmService],
   exports: [OllamaLlmService],
 })
 export class AiLlmModule {}

@@ -7,7 +7,8 @@ import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { EmailChunk } from './email-store/emailchunk.entity';
 import { ContextModule } from './context/context.module';
-import { AiModule } from './ai/ai.module';
+import { AiLlmModule } from './ai-llm/ai-llm.module';
+import { AiEmbedderModule } from './ai-embedder/ai-embedder.module';
 
 @Module({
   imports: [
@@ -23,9 +24,11 @@ import { AiModule } from './ai/ai.module';
       username: process.env.DB_USERNAME,
       password: process.env.DB_PASSWORD,
       entities: [EmailChunk],
+      synchronize: true,
     }),
     ContextModule,
-    AiModule,
+    AiLlmModule,
+    AiEmbedderModule,
   ],
 })
 export class AppModule {}

@@ -1,11 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import {
-  FetchMessageObject,
-  ImapFlow,
-  ListResponse,
-  ListTreeResponse,
-  MailboxLockObject,
-} from 'imapflow';
+import { ImapFlow, ListResponse, MailboxLockObject } from 'imapflow';
 
 @Injectable()
 export class EmailFetcherService {

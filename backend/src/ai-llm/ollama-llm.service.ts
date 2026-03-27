@@ -2,19 +2,22 @@ import { Injectable } from '@nestjs/common';
 import { ILLMService } from './ILLMService.interface';
 import { ContextService } from 'src/context/context.service';
 import { SYSTEM_PROMPT } from './ai.constants';
-import ollama from 'ollama';
+import { Ollama } from 'ollama';
 
 @Injectable()
 export class OllamaLlmService implements ILLMService {
-  constructor(private readonly contextService: ContextService) {}
+  private ollama: Ollama;
+  constructor(private readonly contextService: ContextService) {
+    this.ollama = new Ollama({ host: process.env.OLLAMA_URL });
+  }
 
-  async *generateResponse(promt: string): AsyncGenerator<string> {
-    const response = await ollama.chat({
-      model: 'mistral-3:8b',
+  async *generateResponse(prompt: string): AsyncGenerator<string> {
+    const response = await this.ollama.chat({
+      model: 'mistral:7b',
       messages: [
         {
           role: 'user',
-          content: await this.buildContext(promt),
+          content: await this.buildContext(prompt),
         },
       ],
       stream: true,
@@ -26,8 +29,8 @@ export class OllamaLlmService implements ILLMService {
       }
     }
   }
-  async buildContext(promt: string): Promise<string> {
-    const contextChunks = await this.contextService.fetchContext(promt);
+  async buildContext(prompt: string): Promise<string> {
+    const contextChunks = await this.contextService.fetchContext(prompt);
     let context: string = '';
 
     const today = new Date().getDate();
@@ -42,6 +45,7 @@ export class OllamaLlmService implements ILLMService {
         `;
     });
 
+    console.log('final content: ' + SYSTEM_PROMPT(context, today));
     return SYSTEM_PROMPT(context, today);
   }
 }

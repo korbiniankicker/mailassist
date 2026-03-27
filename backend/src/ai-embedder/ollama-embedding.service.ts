@@ -1,28 +1,27 @@
 import { HttpException, Injectable, Logger } from '@nestjs/common';
 import { IEmbeddingService } from './IEmbeddingService.interface';
+import { Ollama } from 'ollama';
 
 @Injectable()
 export class OllamaEmbeddingService implements IEmbeddingService {
-  constructor(
-    private readonly logger = new Logger(OllamaEmbeddingService.name),
-  ) {}
+  private ollama: Ollama;
+  constructor() {
+    this.ollama = new Ollama({ host: process.env.OLLAMA_URL });
+  }
 
   async getEmbedding(text: string): Promise<number[]> {
-    let response = await fetch(String(process.env.OLLAMA_URL_EMBED), {
-      method: 'POST',
-      body: JSON.stringify({
-        model: 'nomic-embed-text',
-        input: text,
-      }),
+    let response = await this.ollama.embed({
+      model: 'nomic-embed-text',
+      input: text,
     });
-    if (!response.ok) {
-      this.logger.error('Ollama request failed');
-      throw new HttpException(
-        `Ollama request failed with status ${response.status}`,
-        response.status,
-      );
+
+    console.log(text);
+    console.log('full ollama response:', JSON.stringify(response));
+
+    if (response.embeddings.length === 0) {
+      console.log('Error: Empty embeddings returned by ollama');
     }
-    const data = await response.json();
-    return data.embeddings;
+
+    return response.embeddings[0];
   }
 }

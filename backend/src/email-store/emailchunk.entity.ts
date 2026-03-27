@@ -1,5 +1,4 @@
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
-import { Timestamp } from 'typeorm/browser';
 
 @Entity()
 export class EmailChunk {
@@ -12,7 +11,7 @@ export class EmailChunk {
   @Column()
   subject: string;
 
-  @Column('typestamptz')
+  @Column('timestamptz')
   date: Date;
 
   @Column()
