@@ -1,3 +1,3 @@
 export interface ILLMService {
-  generatePromt(promt: string): AsyncGenerator<string>;
+  generateResponse(promt: string): AsyncGenerator<string>;
 }
