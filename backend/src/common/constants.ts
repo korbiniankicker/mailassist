@@ -1,3 +1,22 @@
+//sets how many chunks are returned my the reranking (max)
+export const MAX_CONTEXT_CHUNKS = 5;
+
+//chunking
+export const EMBEDDING_MODEL = 'nomic-embed-text';
+export const CHUNK_SIZE: number = 500;
+export const OVERLAP_SIZE: number = 64;
+
+//vector similarity search
+export const MIN_SIMILARITY: number = 0.5;
+export const TOP_K: number = 20;
+
+//reranking
+export const RERANKING_MODEL = 'Qwen3-Reranker-8B:Q3_K_M';
+export const RERANKING_SYSTEM_PROMPT =
+  'Give a score between 0 and 1 for how relevant the information between this text chunk are for the prompt, with 0 meaning no relevance and 1 that it is extremely relevant.';
+
+//llm chat
+export const LLM_MODEL = 'mistral_7b';
 export const SYSTEM_PROMPT = (context: string, today: number) => {
   let contextSection: string =
     context.length > 0

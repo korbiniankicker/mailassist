@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { EmailChunk } from 'src/email-store/emailchunk.entity';
 import { OllamaEmbeddingService } from 'src/ai-embedder/ollama-embedding.service';
 import { Repository } from 'typeorm';
-import { TOP_K, MIN_SIMILARITY } from './context.constants';
+import { TOP_K, MIN_SIMILARITY } from '../common/constants';
 import { RerankerService } from 'src/reranker/reranker.service';
 
 @Injectable()
@@ -20,7 +20,7 @@ export class ContextService {
       await this.embeddingService.getEmbedding(prompt);
 
     if (!promptEmbedding || promptEmbedding.length === 0) {
-      throw new Error('Failed to generate embedding — returned empty array');
+      throw new Error('Failed to generate embedding: returned empty array');
     }
 
     const results: EmailChunk[] = await this.chunksRepository.query(
@@ -41,13 +41,6 @@ export class ContextService {
     LIMIT $2
   `,
       [JSON.stringify(promptEmbedding), TOP_K],
-    );
-    console.log(
-      resultsTest.map((r) => ({
-        id: r.id,
-        similarity: r.similarity,
-        preview: r.embeddedText.slice(0, 80),
-      })),
     );
     const rerankedContext = await this.rerankerServive.rerankChunks(
       prompt,

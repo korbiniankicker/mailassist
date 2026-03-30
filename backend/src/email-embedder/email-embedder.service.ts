@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { EmailFetcherService } from '../email-fetcher/email-fetcher.service';
 import { OllamaEmbeddingService } from '../ai-embedder/ollama-embedding.service';
 import { EmailStoreService } from '../email-store/email-store.service';
-import { CHUNK_SIZE, OVERLAP_SIZE } from './embedding.constants';
+import { CHUNK_SIZE, OVERLAP_SIZE } from '../common/constants';
 import { EmailChunk } from 'src/email-store/emailchunk.entity';
 import { EmailDto } from 'src/common/email.dto';
 

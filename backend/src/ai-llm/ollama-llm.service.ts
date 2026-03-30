@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ILLMService } from './ILLMService.interface';
 import { ContextService } from 'src/context/context.service';
-import { LLM_MODEL, SYSTEM_PROMPT } from './ai.constants';
+import { LLM_MODEL, SYSTEM_PROMPT } from '../common/constants';
 import { Ollama } from 'ollama';
 
 @Injectable()

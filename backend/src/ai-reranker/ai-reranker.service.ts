@@ -1,9 +1,6 @@
-import { HttpException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { Ollama } from 'ollama';
-import {
-  RERANKING_MODEL,
-  RERANKING_SYSTEM_PROMPT,
-} from './ai-reranker.constants';
+import { RERANKING_MODEL, RERANKING_SYSTEM_PROMPT } from '../common/constants';
 
 @Injectable()
 export class AiRerankerService {
@@ -24,7 +21,7 @@ export class AiRerankerService {
         },
       ],
       format: {
-        format: 'object',
+        type: 'object',
         properties: {
           score: {
             type: 'number',
