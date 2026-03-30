@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ILLMService } from './ILLMService.interface';
 import { ContextService } from 'src/context/context.service';
-import { SYSTEM_PROMPT } from './ai.constants';
+import { LLM_MODEL, SYSTEM_PROMPT } from './ai.constants';
 import { Ollama } from 'ollama';
 
 @Injectable()
@@ -13,7 +13,7 @@ export class OllamaLlmService implements ILLMService {
 
   async *generateResponse(prompt: string): AsyncGenerator<string> {
     const response = await this.ollama.chat({
-      model: 'mistral:7b',
+      model: LLM_MODEL,
       messages: [
         {
           role: 'user',

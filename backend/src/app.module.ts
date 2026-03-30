@@ -9,6 +9,8 @@ import { EmailChunk } from './email-store/emailchunk.entity';
 import { ContextModule } from './context/context.module';
 import { AiLlmModule } from './ai-llm/ai-llm.module';
 import { AiEmbedderModule } from './ai-embedder/ai-embedder.module';
+import { RerankerModule } from './reranker/reranker.module';
+import { AiRerankerModule } from './ai-reranker/ai-reranker.module';
 
 @Module({
   imports: [
@@ -30,6 +32,8 @@ import { AiEmbedderModule } from './ai-embedder/ai-embedder.module';
     ContextModule,
     AiLlmModule,
     AiEmbedderModule,
+    RerankerModule,
+    AiRerankerModule,
   ],
 })
 export class AppModule {}
