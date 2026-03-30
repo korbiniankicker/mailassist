@@ -1,2 +1,2 @@
-export const MIN_SIMILARITY: number = 0.3;
-export const MAX_CONTEXT_CHUNKS: number = 6;
+export const MIN_SIMILARITY: number = 0.5;
+export const MAX_CONTEXT_CHUNKS: number = 5;

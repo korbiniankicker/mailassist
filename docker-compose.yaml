@@ -14,19 +14,19 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
-      POSTGRES_DB: example_db
+      POSTGRES_DB: email-rag
     ports:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
 
-  ollama:
-    image: ollama/ollama
-    container_name: ollama-services
-    ports:
-      - "11434:11434"
-    volumes:
-      - ollama_data:/root/.ollama
+  #ollama:
+  #  image: ollama/ollama
+  #  container_name: ollama-services
+  #  ports:
+  #    - "11434:11434"
+  #  volumes:
+  #    - ollama_data:/root/.ollama
 
 volumes:
   pgdata:

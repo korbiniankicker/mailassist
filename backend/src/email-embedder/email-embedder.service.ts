@@ -4,6 +4,7 @@ import { OllamaEmbeddingService } from '../ai-embedder/ollama-embedding.service'
 import { EmailStoreService } from '../email-store/email-store.service';
 import { CHUNK_SIZE, OVERLAP_SIZE } from './embedding.constants';
 import { EmailChunk } from 'src/email-store/emailchunk.entity';
+import { EmailDto } from 'src/common/email.dto';
 
 @Injectable()
 export class EmailEmbedderService {
@@ -13,77 +14,88 @@ export class EmailEmbedderService {
     private ollamaService: OllamaEmbeddingService,
   ) {}
 
-  async *filterEmails(): AsyncGenerator<{
-    sender: string;
-    content: string;
-    subject: string;
-    date: Date;
+  private async *filterEmails(): AsyncGenerator<{
+    emailDto: EmailDto;
+    progress: number;
   }> {
-    for await (let message of this.emailFetcherService.getMessages('INBOX')) {
-      const sender: string | undefined =
-        message.envelope?.sender?.toString() ?? undefined;
-      const message_content: string | undefined =
-        message.source?.toString() ?? undefined;
-      const date: Date | undefined = message.envelope?.date ?? undefined;
-      const subject: string | undefined =
-        message.envelope?.subject ?? undefined;
-      if (!sender || !message_content || !date || !subject) {
-        //Logger.warn(
-        //  'Unable to fully fetch Email information. E-Mail has been skipped, conituning to next E-Mal',
-        //);
+    for await (let email of this.emailFetcherService.getMessages('INBOX')) {
+      if (
+        !email.message.sender ||
+        !email.message.content ||
+        !email.message.date ||
+        !email.message.subject
+      ) {
+        console.log(
+          'unable to fully fetch email: (DATE)' +
+            email.message.date +
+            ': (SUBJECT)' +
+            email.message.subject +
+            ': (SENDER)' +
+            email.message.sender +
+            ': (CONTENT)' +
+            email.message.content,
+        );
         continue;
       }
       yield {
-        sender: sender,
-        content: message_content,
-        subject: subject,
-        date: date,
+        emailDto: email.message,
+        progress: email.progress,
       };
     }
   }
 
-  async *chunkEmails(): AsyncGenerator<{
-    embeddedText: string;
-    date: Date;
-    embedding: number[];
-    sender: string;
-    subject: string;
+  private async *chunkEmails(): AsyncGenerator<{
+    obj: {
+      emailDto: EmailDto;
+      embedding: number[];
+    };
+    progress: number;
   }> {
     for await (const mail of this.filterEmails()) {
-      let buffer = `From: ${mail.sender}\n
-                    Date: ${mail.date}\n
-                    Subject: ${mail.subject}\n
-                    Content: ${mail.content}`;
+      let buffer = `From: ${mail.emailDto.sender}\n
+                    Date: ${mail.emailDto.date}\n
+                    Subject: ${mail.emailDto.subject}\n
+                    Content: ${mail.emailDto.content}`;
       while (buffer.length > CHUNK_SIZE + OVERLAP_SIZE * 2) {
         const chunk = buffer.slice(0, CHUNK_SIZE + OVERLAP_SIZE * 2);
         buffer = buffer.slice(CHUNK_SIZE + OVERLAP_SIZE);
         const embedding = await this.ollamaService.getEmbedding(chunk);
         yield {
-          embeddedText: chunk,
-          date: mail.date,
-          embedding: embedding,
-          sender: mail.sender,
-          subject: mail.subject,
+          obj: {
+            emailDto: mail.emailDto,
+            embedding: embedding,
+          },
+          progress: mail.progress,
         };
       }
       if (buffer.length > 0) {
         const embedding = await this.ollamaService.getEmbedding(buffer);
         yield {
-          embeddedText: buffer,
-          date: mail.date,
-          embedding: embedding,
-          sender: mail.sender,
-          subject: mail.subject,
+          obj: {
+            emailDto: mail.emailDto,
+            embedding: embedding,
+          },
+          progress: mail.progress,
         };
       }
     }
   }
-  async storeEmailEmbeddings() {
+  private async *storeEmailEmbeddings(): AsyncGenerator<number> {
     for await (let chunk of this.chunkEmails()) {
-      this.emailStoreService.storeChunk(chunk as EmailChunk);
+      let emailChunk: EmailChunk = {
+        date: chunk.obj.emailDto.date ?? new Date(),
+        embedding: chunk.obj.embedding,
+        embeddedText: chunk.obj.emailDto.content ?? ' ',
+        sender: chunk.obj.emailDto.sender ?? ' ',
+        subject: chunk.obj.emailDto.subject ?? ' ',
+      } as EmailChunk;
+      this.emailStoreService.storeChunk(emailChunk);
+      yield chunk.progress;
     }
   }
-  async embedEmails() {
-    await this.storeEmailEmbeddings();
+  async *embedEmails(): AsyncGenerator<number> {
+    for await (let p of this.storeEmailEmbeddings()) {
+      yield p;
+    }
   }
 }

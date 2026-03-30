@@ -31,6 +31,22 @@ export class ContextService {
         `,
       [JSON.stringify(promptEmbedding), MIN_SIMILARITY, MAX_CONTEXT_CHUNKS],
     );
+    const resultsTest = await this.chunksRepository.query(
+      `
+    SELECT *, 1 - (embedding <=> $1::vector) AS similarity
+    FROM email_chunk
+    ORDER BY embedding <=> $1::vector ASC
+    LIMIT $2
+  `,
+      [JSON.stringify(promptEmbedding), MAX_CONTEXT_CHUNKS],
+    );
+    console.log(
+      resultsTest.map((r) => ({
+        id: r.id,
+        similarity: r.similarity,
+        preview: r.embeddedText.slice(0, 80),
+      })),
+    );
 
     return results;
   }

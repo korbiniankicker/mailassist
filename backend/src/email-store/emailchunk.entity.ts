@@ -17,6 +17,6 @@ export class EmailChunk {
   @Column()
   embeddedText: string;
 
-  @Column('vector', { length: 3 })
+  @Column('vector', { length: Number(process.env.EMBEDDING_DIMESNIONS) })
   embedding: number[];
 }
