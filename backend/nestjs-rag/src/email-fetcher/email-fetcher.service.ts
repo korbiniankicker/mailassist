@@ -50,7 +50,6 @@ export class EmailFetcherService {
   ): AsyncGenerator<{ message: EmailDto; progress: number }> {
     await this.connect();
     const ingestedIds = new Set(await this.emailRepoService.getAllMessageIds());
-    console.log('\x1b[32m%s\x1b[0m', ingestedIds);
     let mailboxLock: MailboxLockObject =
       await this.client.getMailboxLock(mailboxName);
     try {
@@ -67,10 +66,6 @@ export class EmailFetcherService {
         envelope: true,
         source: true,
       })) {
-        console.log(
-          '\x1b[32m%s\x1b[0m processing envelope:' +
-            message.envelope?.messageId,
-        );
         try {
           count++;
           let progress: number = Math.round(
@@ -85,17 +80,16 @@ export class EmailFetcherService {
           const parsed = await simpleParser(message.source);
           if (!parsed.messageId) {
             console.warn(
-              `Message ${message?.envelope?.messageId} has no messageId, skipped`,
+              `Message ${parsed.messageId} has no messageId, skipped`,
             );
             continue;
           }
-          console.log('\x1b[32m%s\x1b[0m', ingestedIds.has(parsed.messageId));
           if (ingestedIds.has(parsed.messageId)) {
-            console.log('\x1b[32m%s\x1b[0m Email already ingested, skipped');
+            console.warn('Email already ingested, skipped');
             continue;
           }
           if (!this.checkMailValidity(parsed)) {
-            console.log('\x1b[32m%s\x1b[0m Email invalid, skipped');
+            console.warn('Email invalid, skipped');
             continue;
           }
           let emailDto: EmailDto = {
