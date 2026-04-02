@@ -13,11 +13,12 @@ export class EmailStoreService {
   async storeChunk(emailChunk: EmailChunk): Promise<EmailChunk | null> {
     try {
       const _chunk: EmailChunk = this.chunksRepository.create({
-        subject: emailChunk.subject ?? '',
-        sender: emailChunk.sender ?? '',
-        date: emailChunk.date ?? '',
-        embeddedText: emailChunk.embeddedText ?? '',
-        embedding: emailChunk.embedding ?? [],
+        subject: emailChunk.subject,
+        sender: emailChunk.sender,
+        date: emailChunk.date,
+        embedded_text: emailChunk.embedded_text,
+        message_id: emailChunk.message_id,
+        embedding: emailChunk.embedding,
       });
       return await this.chunksRepository.save(_chunk);
     } catch (error) {

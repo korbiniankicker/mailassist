@@ -1,7 +1,7 @@
 name: email-rag
 
 services:
-  nestja-rag:
+  nestjs-rag:
     depends_on:
       - db
     build: ./backend/nestjs-rag

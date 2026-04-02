@@ -16,7 +16,10 @@ export class EmailChunk {
   date: Date;
 
   @Column()
-  embeddedText: string;
+  embedded_text: string;
+
+  @Column()
+  message_id: string;
 
   @Column('vector', { length: Number(EMBEDDING_VECTOR_DIMESIONS) })
   embedding: number[];

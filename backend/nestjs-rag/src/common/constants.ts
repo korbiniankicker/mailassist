@@ -4,8 +4,8 @@ export const MAX_CONTEXT_CHUNKS = 5;
 //chunking
 export const EMBEDDING_MODEL = 'nomic-embed-text';
 export const EMBEDDING_VECTOR_DIMESIONS = 768;
-export const CHUNK_SIZE: number = 500;
-export const OVERLAP_SIZE: number = 64;
+export const CHUNK_SIZE: number = 300;
+export const OVERLAP_SIZE: number = 30;
 
 //vector similarity search
 export const MIN_SIMILARITY: number = 0;

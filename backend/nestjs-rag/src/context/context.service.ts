@@ -66,7 +66,7 @@ export class ContextService {
           From: ${chunk.sender}
           Date: ${chunk.date}
           Subject: ${chunk.subject}
-          Content: ${chunk.embeddedText}
+          Content: ${chunk.embedded_text}
           `;
     });
     return context;

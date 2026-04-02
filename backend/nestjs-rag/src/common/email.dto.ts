@@ -1,6 +1,9 @@
+import { StringifyOptions } from 'querystring';
+
 export class EmailDto {
-  subject?: string;
-  sender?: string;
-  date?: Date;
-  content?: string;
+  messageId: string;
+  subject: string;
+  sender: string;
+  date: Date;
+  content: string;
 }
