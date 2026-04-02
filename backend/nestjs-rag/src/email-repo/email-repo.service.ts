@@ -27,16 +27,11 @@ export class EmailRepoService {
   }
 
   async getAllMessageIds(): Promise<string[]> {
-    const result: EmailChunk[] = await this.chunksRepository
+    const result = await this.chunksRepository
       .createQueryBuilder('email_chunk')
-      .select('message_id')
-      .from(EmailChunk, 'email_chunk')
-      .getMany();
+      .select('DISTINCT email_chunk.message_id', 'message_id')
+      .getRawMany<{ message_id: string }>();
 
-    const ids: string[] = result.map((r) => {
-      return r.message_id;
-    });
-
-    return ids;
+    return result.map((r) => r.message_id);
   }
 }

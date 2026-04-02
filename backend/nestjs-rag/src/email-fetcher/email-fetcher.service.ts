@@ -3,7 +3,6 @@ import { ImapFlow, ListResponse, MailboxLockObject } from 'imapflow';
 import { EmailDto } from '../common/email.dto';
 import { ParsedMail, simpleParser } from 'mailparser';
 import { EmailRepoService } from 'src/email-repo/email-repo.service';
-import { ContextUtils } from '@nestjs/core/helpers/context-utils';
 
 @Injectable()
 export class EmailFetcherService {
@@ -51,6 +50,7 @@ export class EmailFetcherService {
   ): AsyncGenerator<{ message: EmailDto; progress: number }> {
     await this.connect();
     const ingestedIds = new Set(await this.emailRepoService.getAllMessageIds());
+    console.log('\x1b[32m%s\x1b[0m', ingestedIds);
     let mailboxLock: MailboxLockObject =
       await this.client.getMailboxLock(mailboxName);
     try {
@@ -63,49 +63,39 @@ export class EmailFetcherService {
         return;
       }
       let count: number = 0;
-      for await (let envelope of this.client.fetch(
-        `1:*`,
-        {
-          envelope: true,
-        },
-        {
-          uid: true,
-        },
-      )) {
+      for await (let message of this.client.fetch(`1:*`, {
+        envelope: true,
+        source: true,
+      })) {
+        console.log(
+          '\x1b[32m%s\x1b[0m processing envelope:' +
+            message.envelope?.messageId,
+        );
         try {
           count++;
           let progress: number = Math.round(
             (count / this.client.mailbox.exists) * 100,
           );
-
-          if (!envelope.envelope?.messageId) {
-            console.warn(`Email ${envelope.uid} has no messageId, skipping`);
-            continue;
-          }
-          if (ingestedIds.has(envelope.envelope.messageId)) {
-            continue;
-          }
-          const message = await this.client.fetchOne(
-            envelope.uid.toString(),
-            {
-              source: true,
-            },
-            {
-              uid: true,
-            },
-          );
-          if (!message) {
+          if (!message?.source) {
             console.warn(
-              `Email ${envelope.uid} no longer exists on server, skipping`,
+              `Message ${message?.envelope?.messageId} has no source, skipped`,
             );
             continue;
           }
-          if (!message.source) {
-            console.warn(`Email ${envelope.uid} has no source, skipping`);
+          const parsed = await simpleParser(message.source);
+          if (!parsed.messageId) {
+            console.warn(
+              `Message ${message?.envelope?.messageId} has no messageId, skipped`,
+            );
             continue;
           }
-          const parsed = await simpleParser(message.source);
+          console.log('\x1b[32m%s\x1b[0m', ingestedIds.has(parsed.messageId));
+          if (ingestedIds.has(parsed.messageId)) {
+            console.log('\x1b[32m%s\x1b[0m Email already ingested, skipped');
+            continue;
+          }
           if (!this.checkMailValidity(parsed)) {
+            console.log('\x1b[32m%s\x1b[0m Email invalid, skipped');
             continue;
           }
           let emailDto: EmailDto = {
@@ -140,9 +130,9 @@ export class EmailFetcherService {
       !email.text ||
       !email.date
     ) {
-      console.log(
+      console.warn(
         `unable to fully fetch email: 
-            (MESSAGEID)` +
+          (MESSAGEID)` +
           email.messageId +
           '(DATE)' +
           email.date +
@@ -159,6 +149,7 @@ export class EmailFetcherService {
   }
 
   async disconnect() {
+    console.warn('Disconnected!');
     await this.client.logout();
   }
 }
