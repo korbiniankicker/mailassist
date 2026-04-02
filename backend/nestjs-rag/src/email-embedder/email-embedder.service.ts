@@ -37,11 +37,17 @@ export class EmailEmbedderService {
         );
         continue;
       }
+      email.message.content = this.stripContent(email.message.content);
       yield {
         emailDto: email.message,
         progress: email.progress,
       };
     }
+  }
+
+  private stripContent(content: string): string {
+    const pattern = /^\s*[\r\n]/gm;
+    return content.replace(pattern, '');
   }
 
   private async *chunkEmails(): AsyncGenerator<{
