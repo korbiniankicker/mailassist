@@ -2,12 +2,16 @@ import { Injectable } from '@nestjs/common';
 import { ImapFlow, ListResponse, MailboxLockObject } from 'imapflow';
 import { EmailDto } from '../common/email.dto';
 import { ParsedMail, simpleParser } from 'mailparser';
+import { EmailRepoService } from 'src/email-repo/email-repo.service';
+import { ContextUtils } from '@nestjs/core/helpers/context-utils';
 
 @Injectable()
 export class EmailFetcherService {
   private client: ImapFlow;
 
-  constructor() {
+  constructor(private readonly emailRepoService: EmailRepoService) {}
+
+  async connect() {
     this.client = new ImapFlow({
       host: String(process.env.IMAP_HOST),
       port: Number(process.env.IMAP_PORT),
@@ -17,9 +21,6 @@ export class EmailFetcherService {
         pass: String(process.env.IMAP_PASS),
       },
     });
-  }
-
-  async connect() {
     try {
       await this.client.connect();
       console.log('sucessfully connected!');
@@ -49,48 +50,82 @@ export class EmailFetcherService {
     mailboxName: string,
   ): AsyncGenerator<{ message: EmailDto; progress: number }> {
     await this.connect();
+    const ingestedIds = new Set(await this.emailRepoService.getAllMessageIds());
     let mailboxLock: MailboxLockObject =
       await this.client.getMailboxLock(mailboxName);
     try {
-      if (this.client.mailbox) {
-        if (this.client.mailbox.exists === 0) {
-          console.log('No messages in mailbox');
-          return;
-        }
-        let count: number = 0;
-        for await (let message of this.client.fetch(`1:*`, {
+      if (!this.client.mailbox) {
+        console.error(`Error: Mailbox ${mailboxName} doesn't exist`);
+        return;
+      }
+      if (this.client.mailbox.exists === 0) {
+        console.log('No messages in mailbox');
+        return;
+      }
+      let count: number = 0;
+      for await (let envelope of this.client.fetch(
+        `1:*`,
+        {
           envelope: true,
-          bodyStructure: true,
-          source: true,
-        })) {
-          try {
-            const parsed = await simpleParser(message.source ?? '');
-            count++;
-            let progress: number = Math.round(
-              (count / this.client.mailbox.exists) * 100,
-            );
-            if (!this.checkMailValidity(parsed)) {
-              continue;
-            }
-            let emailDto: EmailDto = {
-              messageId: parsed.messageId ?? '',
-              subject: parsed.subject ?? '',
-              sender: parsed.from?.text ?? '',
-              date: parsed.date ?? new Date(),
-              content: parsed.text?.trim() ?? '',
-            };
-            yield {
-              message: emailDto,
-              progress: progress,
-            };
-          } catch (error) {
-            console.log('error: ' + error);
+        },
+        {
+          uid: true,
+        },
+      )) {
+        try {
+          count++;
+          let progress: number = Math.round(
+            (count / this.client.mailbox.exists) * 100,
+          );
+
+          if (!envelope.envelope?.messageId) {
+            console.warn(`Email ${envelope.uid} has no messageId, skipping`);
             continue;
           }
+          if (ingestedIds.has(envelope.envelope.messageId)) {
+            continue;
+          }
+          const message = await this.client.fetchOne(
+            envelope.uid.toString(),
+            {
+              source: true,
+            },
+            {
+              uid: true,
+            },
+          );
+          if (!message) {
+            console.warn(
+              `Email ${envelope.uid} no longer exists on server, skipping`,
+            );
+            continue;
+          }
+          if (!message.source) {
+            console.warn(`Email ${envelope.uid} has no source, skipping`);
+            continue;
+          }
+          const parsed = await simpleParser(message.source);
+          if (!this.checkMailValidity(parsed)) {
+            continue;
+          }
+          let emailDto: EmailDto = {
+            messageId: parsed.messageId ?? '',
+            subject: parsed.subject ?? '',
+            sender: parsed.from?.text ?? '',
+            date: parsed.date ?? new Date(),
+            content: parsed.text?.trim() ?? '',
+          };
+          yield {
+            message: emailDto,
+            progress: progress,
+          };
+        } catch (error) {
+          console.error('Error: Failed to ingest Email - ' + error);
+          continue;
         }
       }
     } catch (error) {
-      console.log('Error: ' + error);
+      console.error('Error: Error opening mailbox - ' + error);
     } finally {
       mailboxLock.release();
       await this.disconnect();

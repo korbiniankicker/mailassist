@@ -25,4 +25,18 @@ export class EmailRepoService {
       throw error;
     }
   }
+
+  async getAllMessageIds(): Promise<string[]> {
+    const result: EmailChunk[] = await this.chunksRepository
+      .createQueryBuilder('email_chunk')
+      .select('message_id')
+      .from(EmailChunk, 'email_chunk')
+      .getMany();
+
+    const ids: string[] = result.map((r) => {
+      return r.message_id;
+    });
+
+    return ids;
+  }
 }
