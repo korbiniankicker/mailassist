@@ -59,7 +59,9 @@ export class EmailEmbedderService {
       while (buffer.length > CHUNK_SIZE + OVERLAP_SIZE * 2) {
         const chunk = buffer.slice(0, CHUNK_SIZE + OVERLAP_SIZE * 2);
         buffer = buffer.slice(CHUNK_SIZE + OVERLAP_SIZE);
-        const embedding = await this.ollamaService.getEmbedding(chunk);
+        const embedding = await this.ollamaService.getEmbedding(
+          'search_document :' + chunk,
+        );
         yield {
           obj: {
             emailDto: mail.emailDto,

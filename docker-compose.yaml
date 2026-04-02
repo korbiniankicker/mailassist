@@ -1,12 +1,16 @@
 name: email-rag
 
 services:
-  backend:
+  nestja-rag:
     depends_on:
       - db
-    build: ./backend
+    build: ./backend/nestjs-rag
     ports:
       - "3000:3000"
+  reranking-microservice:
+    build: ./backend/reranking-microservice
+    ports:
+      - "8001:8001"
 
   db:
     image: pgvector/pgvector:pg17

@@ -31,19 +31,9 @@ export class OllamaLlmService implements ILLMService {
   }
   async buildContext(prompt: string): Promise<string> {
     const contextChunks = await this.contextService.fetchContext(prompt);
-    let context: string = '';
 
+    const context = contextChunks.join('\n');
     const today = new Date().getDate();
-
-    contextChunks.forEach((chunk, i) => {
-      context += `
-        ---Email ${i}---
-        From: ${chunk.sender}
-        Date: ${chunk.date}
-        Subject: ${chunk.subject}
-        Content: ${chunk.embeddedText}
-        `;
-    });
 
     console.log('final content: ' + SYSTEM_PROMPT(context, today));
     return SYSTEM_PROMPT(context, today);

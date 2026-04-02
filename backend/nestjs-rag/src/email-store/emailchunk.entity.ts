@@ -1,3 +1,4 @@
+import { EMBEDDING_VECTOR_DIMESIONS } from 'src/common/constants';
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()
@@ -17,6 +18,6 @@ export class EmailChunk {
   @Column()
   embeddedText: string;
 
-  @Column('vector', { length: Number(process.env.EMBEDDING_DIMESNIONS) })
+  @Column('vector', { length: Number(EMBEDDING_VECTOR_DIMESIONS) })
   embedding: number[];
 }

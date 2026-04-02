@@ -15,9 +15,6 @@ export class OllamaEmbeddingService implements IEmbeddingService {
       input: text,
     });
 
-    console.log(text);
-    console.log('full ollama response:', JSON.stringify(response));
-
     if (response.embeddings.length === 0) {
       console.log('Error: Empty embeddings returned by ollama');
     }
