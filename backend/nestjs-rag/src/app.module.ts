@@ -2,10 +2,10 @@ import { Module } from '@nestjs/common';
 import { ChatModule } from './chat/chat.module';
 import { EmailFetcherModule } from './email-fetcher/email-fetcher.module';
 import { EmailEmbedderModule } from './email-embedder/email-embedder.module';
-import { EmailStoreModule } from './email-store/email-store.module';
+import { EmailRepoModule } from './email-repo/email-repo.module';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { EmailChunk } from './email-store/emailchunk.entity';
+import { EmailChunk } from './email-repo/emailchunk.entity';
 import { ContextModule } from './context/context.module';
 import { AiLlmModule } from './ai-llm/ai-llm.module';
 import { AiEmbedderModule } from './ai-embedder/ai-embedder.module';
@@ -17,7 +17,7 @@ import { AiRerankerModule } from './ai-reranker/ai-reranker.module';
     ChatModule,
     EmailFetcherModule,
     EmailEmbedderModule,
-    EmailStoreModule,
+    EmailRepoModule,
     ConfigModule.forRoot({ isGlobal: true }),
     TypeOrmModule.forRoot({
       type: 'postgres',

@@ -4,7 +4,7 @@ import { EmailChunk } from './emailchunk.entity';
 import { Repository } from 'typeorm';
 
 @Injectable()
-export class EmailStoreService {
+export class EmailRepoService {
   constructor(
     @InjectRepository(EmailChunk)
     private readonly chunksRepository: Repository<EmailChunk>,

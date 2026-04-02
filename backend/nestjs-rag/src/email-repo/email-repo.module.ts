@@ -1,11 +1,11 @@
 import { Module } from '@nestjs/common';
-import { EmailStoreService } from './email-store.service';
+import { EmailRepoService } from './email-repo.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { EmailChunk } from './emailchunk.entity';
 
 @Module({
   imports: [TypeOrmModule.forFeature([EmailChunk])],
-  providers: [EmailStoreService],
-  exports: [EmailStoreService],
+  providers: [EmailRepoService],
+  exports: [EmailRepoService],
 })
-export class EmailStoreModule {}
+export class EmailRepoModule {}

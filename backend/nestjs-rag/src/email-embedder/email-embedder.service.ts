@@ -1,16 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { EmailFetcherService } from '../email-fetcher/email-fetcher.service';
 import { OllamaEmbeddingService } from '../ai-embedder/ollama-embedding.service';
-import { EmailStoreService } from '../email-store/email-store.service';
+import { EmailRepoService } from '../email-repo/email-repo.service';
 import { CHUNK_SIZE, OVERLAP_SIZE } from '../common/constants';
-import { EmailChunk } from 'src/email-store/emailchunk.entity';
+import { EmailChunk } from 'src/email-repo/emailchunk.entity';
 import { EmailDto } from 'src/common/email.dto';
 
 @Injectable()
 export class EmailEmbedderService {
   constructor(
     private emailFetcherService: EmailFetcherService,
-    private emailStoreService: EmailStoreService,
+    private emailStoreService: EmailRepoService,
     private ollamaService: OllamaEmbeddingService,
   ) {}
 

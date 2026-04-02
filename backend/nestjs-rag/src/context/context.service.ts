@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { EmailChunk } from 'src/email-store/emailchunk.entity';
+import { EmailChunk } from 'src/email-repo/emailchunk.entity';
 import { OllamaEmbeddingService } from 'src/ai-embedder/ollama-embedding.service';
 import { Repository } from 'typeorm';
 import { TOP_K, MIN_SIMILARITY } from '../common/constants';

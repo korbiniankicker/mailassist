@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
 import { ContextService } from './context.service';
 import { AiEmbedderModule } from 'src/ai-embedder/ai-embedder.module';
-import { EmailStoreModule } from 'src/email-store/email-store.module';
+import { EmailRepoModule } from 'src/email-repo/email-repo.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { EmailChunk } from 'src/email-store/emailchunk.entity';
+import { EmailChunk } from 'src/email-repo/emailchunk.entity';
 import { RerankerModule } from 'src/reranker/reranker.module';
 
 @Module({
@@ -11,7 +11,7 @@ import { RerankerModule } from 'src/reranker/reranker.module';
   imports: [
     TypeOrmModule.forFeature([EmailChunk]),
     AiEmbedderModule,
-    EmailStoreModule,
+    EmailRepoModule,
     RerankerModule,
   ],
   exports: [ContextService],

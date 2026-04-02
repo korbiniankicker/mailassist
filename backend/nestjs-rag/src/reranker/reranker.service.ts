@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { AiRerankerService } from 'src/ai-reranker/ai-reranker.service';
-import { EmailChunk } from 'src/email-store/emailchunk.entity';
+import { EmailChunk } from 'src/email-repo/emailchunk.entity';
 import { MAX_CONTEXT_CHUNKS } from '../common/constants';
 
 @Injectable()
