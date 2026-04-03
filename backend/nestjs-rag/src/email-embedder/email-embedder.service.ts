@@ -1,32 +1,38 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { EmailFetcherService } from '../email-fetcher/email-fetcher.service';
-import { OllamaEmbeddingService } from '../ai-embedder/ollama-embedding.service';
 import { EmailRepoService } from '../email-repo/email-repo.service';
-import { CHUNK_SIZE, OVERLAP_SIZE } from '../common/constants';
+import {
+  CHUNK_SIZE,
+  EMBEDDING_SERVICE_PROVIDER_STRING,
+  OVERLAP_SIZE,
+} from '../common/constants';
 import { EmailChunk } from 'src/email-repo/emailchunk.entity';
 import { EmailDto } from 'src/common/email.dto';
+import { type IEmbeddingService } from 'src/ai-embedder/interfaces/IEmbeddingService.interface';
 
 @Injectable()
 export class EmailEmbedderService {
+  emailQueue: { message: EmailDto; progress: number }[];
+  fetchingComplete: boolean;
+
   constructor(
     private emailFetcherService: EmailFetcherService,
     private emailStoreService: EmailRepoService,
-    private ollamaService: OllamaEmbeddingService,
-  ) {}
+    @Inject(EMBEDDING_SERVICE_PROVIDER_STRING)
+    private readonly ollamaService: IEmbeddingService,
+  ) {
+    this.emailQueue = [];
+    this.fetchingComplete = false;
+  }
 
-  private async *filterEmails(): AsyncGenerator<{
-    emailDto: EmailDto;
-    progress: number;
-  }> {
+  private async filterEmails() {
     for await (let email of this.emailFetcherService.getMessages('INBOX')) {
       email.message.content = this.stripContentWhitespaces(
         email.message.content,
       );
-      yield {
-        emailDto: email.message,
-        progress: email.progress,
-      };
+      this.emailQueue.push(email);
     }
+    this.fetchingComplete = true;
   }
 
   private stripContentWhitespaces(content: string): string {
@@ -42,18 +48,27 @@ export class EmailEmbedderService {
     };
     progress: number;
   }> {
-    for await (const mail of this.filterEmails()) {
-      let buffer = mail.emailDto.content;
-      let metadata = `From: ${mail.emailDto.sender} | Date: ${mail.emailDto.date} | Subject: ${mail.emailDto.subject}\n`;
+    while (!this.fetchingComplete || this.emailQueue.length > 0) {
+      if (this.emailQueue.length === 0) {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+        continue;
+      }
+      const mail = this.emailQueue.shift();
+      if (!mail) {
+        console.warn(
+          'Error in mail ingestion pipeline queue: mail object empty',
+        );
+        continue;
+      }
+      let buffer = mail.message.content;
+      let metadata = `From: ${mail.message.sender} | Date: ${mail.message.date} | Subject: ${mail.message.subject}\n`;
       while (buffer.length > CHUNK_SIZE) {
         const chunk = metadata + `\n${buffer.slice(0, CHUNK_SIZE)}\n`;
         buffer = buffer.slice(CHUNK_SIZE - OVERLAP_SIZE);
-        const embedding = await this.ollamaService.getEmbedding(
-          'search_document: ' + chunk,
-        );
+        const embedding = await this.ollamaService.getEmbedding(chunk, false);
         yield {
           obj: {
-            emailDto: mail.emailDto,
+            emailDto: mail.message,
             chunkedText: chunk,
             embedding: embedding,
           },
@@ -62,12 +77,10 @@ export class EmailEmbedderService {
       }
       if (buffer.length > 0) {
         buffer = metadata + `${buffer}\n`;
-        const embedding = await this.ollamaService.getEmbedding(
-          'search_document: ' + buffer,
-        );
+        const embedding = await this.ollamaService.getEmbedding(buffer, false);
         yield {
           obj: {
-            emailDto: mail.emailDto,
+            emailDto: mail.message,
             chunkedText: buffer,
             embedding: embedding,
           },
@@ -91,8 +104,16 @@ export class EmailEmbedderService {
     }
   }
   async *embedEmails(): AsyncGenerator<number> {
+    this.emailQueue = [];
+    this.fetchingComplete = false;
+
+    const filter = this.filterEmails().catch((err) => {
+      console.error('Error fetching emails in EmailEmbedderService: ' + err);
+      this.fetchingComplete = true;
+    });
     for await (let p of this.storeEmailEmbeddings()) {
       yield p;
     }
+    await filter;
   }
 }
