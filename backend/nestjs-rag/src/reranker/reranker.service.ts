@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { AiRerankerService } from 'src/ai-reranker/ai-reranker.service';
-import { EmailChunk } from 'src/email-repo/emailchunk.entity';
-import { MAX_CONTEXT_CHUNKS } from '../common/constants';
+import { TOP_N } from 'src/common/constants';
 
 @Injectable()
 export class RerankerService {
@@ -15,6 +14,7 @@ export class RerankerService {
       prompt,
       contextChunks,
     );
+    reranking = reranking.slice(0, TOP_N);
     reranking.sort((a, b) => b.score - a.score);
     const context: string[] = reranking.map((r) => {
       return r.text;

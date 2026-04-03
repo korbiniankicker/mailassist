@@ -1,17 +1,22 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { EmailChunk } from 'src/email-repo/emailchunk.entity';
-import { OllamaEmbeddingService } from 'src/ai-embedder/ollama-embedding.service';
 import { Repository } from 'typeorm';
-import { TOP_K, MIN_SIMILARITY } from '../common/constants';
+import {
+  TOP_K,
+  MIN_SIMILARITY,
+  EMBEDDING_SERVICE_PROVIDER_STRING,
+} from '../common/constants';
 import { RerankerService } from 'src/reranker/reranker.service';
+import { type IEmbeddingService } from 'src/ai-embedder/interfaces/IEmbeddingService.interface';
 
 @Injectable()
 export class ContextService {
   constructor(
     @InjectRepository(EmailChunk)
     private readonly chunksRepository: Repository<EmailChunk>,
-    private readonly embeddingService: OllamaEmbeddingService,
+    @Inject(EMBEDDING_SERVICE_PROVIDER_STRING)
+    private readonly embeddingService: IEmbeddingService,
     private readonly rerankerServive: RerankerService,
   ) {}
 
@@ -25,7 +30,9 @@ export class ContextService {
       return true;
     });
 
-    const relevantContextStrings: string[] = this.buildContext(deduplicated);
+    const relevantContextStrings: string[] = deduplicated.map((c) => {
+      return c.embedded_text;
+    });
 
     const rerankedContext: string[] = await this.rerankerServive.rerankChunks(
       prompt,
@@ -36,7 +43,8 @@ export class ContextService {
 
   private async fetchRelevantChunks(prompt: string): Promise<EmailChunk[]> {
     const promptEmbedding: number[] = await this.embeddingService.getEmbedding(
-      'search_query: ' + prompt,
+      prompt,
+      true,
     );
 
     if (!promptEmbedding || promptEmbedding.length === 0) {
@@ -58,17 +66,5 @@ export class ContextService {
     results.forEach((r) => console.log(r.subject, r.similarity));
 
     return results;
-  }
-  private buildContext(contextChunks: EmailChunk[]): string[] {
-    const context: string[] = contextChunks.map((chunk) => {
-      return `
-          ---Email---
-          From: ${chunk.sender}
-          Date: ${chunk.date}
-          Subject: ${chunk.subject}
-          Content: ${chunk.embedded_text}
-          `;
-    });
-    return context;
   }
 }

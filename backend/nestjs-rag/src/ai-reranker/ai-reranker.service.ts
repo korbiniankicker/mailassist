@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { RERANKING_MODEL, RERANKING_SYSTEM_PROMPT } from '../common/constants';
+import { TOP_N } from 'src/common/constants';
 
 @Injectable()
 export class AiRerankerService {
@@ -7,10 +7,10 @@ export class AiRerankerService {
     prompt: string,
     contextChunks: string[],
   ): Promise<{ text: string; score: number }[]> {
-    if (!process.env.RERANKING_URL) {
+    if (!process.env.RERANKING_MICROSERVICE_URL) {
       throw 'Error: No reranking api url provided';
     }
-    const response = await fetch(process.env.RERANKING_URL, {
+    const response = await fetch(process.env.RERANKING_MICROSERVICE_URL, {
       method: 'POST',
       headers: {
         'content-type': 'application/json',
@@ -18,7 +18,7 @@ export class AiRerankerService {
       body: JSON.stringify({
         query: prompt,
         documents: contextChunks,
-        top_n: 5,
+        top_n: TOP_N,
       }),
     });
     if (!response.ok) {
