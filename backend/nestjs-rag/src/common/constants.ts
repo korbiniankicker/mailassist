@@ -14,7 +14,7 @@ export const TOP_K: number = 40;
 
 //llm chat
 export const LLM_MODEL = 'mistral:7b';
-export const SYSTEM_PROMPT = (context: string, today: number) => {
+export const SYSTEM_PROMPT = (context: string, today: string) => {
   const contextSection =
     context.length > 0
       ? context
@@ -22,7 +22,7 @@ export const SYSTEM_PROMPT = (context: string, today: number) => {
 
   return `
 You are a personal email assistant. Answer questions about the user's emails accurately and concisely.
-Today's date is: ${new Date(today).toDateString()}
+Today's date is: ${today}
 
 ## Behavior
 - Be direct. Do not use filler phrases like "Based on your emails..." or "I'm here to help...". Get straight to the point.

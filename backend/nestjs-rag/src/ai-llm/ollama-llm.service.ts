@@ -2,7 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { ILLMService } from './ILLMService.interface';
 import { ContextService } from 'src/context/context.service';
 import { LLM_MODEL, SYSTEM_PROMPT } from '../common/constants';
-import { Ollama } from 'ollama';
+import { Message, Ollama } from 'ollama';
+import { MessageDto } from 'src/common/messages.dto';
 
 @Injectable()
 export class OllamaLlmService implements ILLMService {
@@ -11,10 +12,19 @@ export class OllamaLlmService implements ILLMService {
     this.ollama = new Ollama({ host: process.env.OLLAMA_URL });
   }
 
-  async *generateResponse(prompt: string): AsyncGenerator<string> {
+  async *generateResponse(
+    prompt: string,
+    messages?: MessageDto[],
+  ): AsyncGenerator<string> {
+    const pastMessages: Message[] =
+      messages?.map((m) => ({
+        role: m.role,
+        content: m.content,
+      })) ?? [];
     const response = await this.ollama.chat({
       model: LLM_MODEL,
       messages: [
+        ...(pastMessages ?? []),
         {
           role: 'user',
           content: await this.buildContext(prompt),
@@ -33,7 +43,7 @@ export class OllamaLlmService implements ILLMService {
     const contextChunks = await this.contextService.fetchContext(prompt);
 
     const context = contextChunks.join('\n');
-    const today = new Date().getDate();
+    const today = new Date().toLocaleString();
 
     console.log('final content: ' + SYSTEM_PROMPT(context, today));
     return SYSTEM_PROMPT(context, today);
