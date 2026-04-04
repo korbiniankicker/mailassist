@@ -1,10 +1,10 @@
 name: email-rag
 
 services:
-  nestjs-rag:
+  rag-microservice:
     depends_on:
       - db
-    build: ./backend/nestjs-rag
+    build: ./backend/rag-microservice
     ports:
       - "3000:3000"
   reranking-microservice:
