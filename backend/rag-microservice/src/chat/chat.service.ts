@@ -1,15 +1,21 @@
 import { Injectable } from '@nestjs/common';
-import { ILLMService } from 'src/ai-llm/ILLMService.interface';
 import { OllamaLlmService } from 'src/ai-llm/ollama-llm.service';
+import { ChatRepoService } from 'src/chat-repo/chat-repo.service';
 import { MessageDto } from 'src/common/messages.dto';
 
 @Injectable()
 export class ChatService {
-  constructor(private readonly llmService: OllamaLlmService) {}
+  constructor(
+    private readonly llmService: OllamaLlmService,
+    private readonly chatRepoService: ChatRepoService,
+  ) {}
 
   chatHistory: MessageDto[] = [];
 
   async *generateResponse(prompt: string): AsyncGenerator<string> {
+    if (this.chatHistory.length === 0) {
+      this.chatHistory = await this.chatRepoService.findAll();
+    }
     let res: string = '';
     for await (let response of this.llmService.generateResponse(
       prompt,
@@ -20,5 +26,7 @@ export class ChatService {
     }
     this.chatHistory.push({ role: 'user', content: prompt });
     this.chatHistory.push({ role: 'assistant', content: res });
+    await this.chatRepoService.storeMessage('user', prompt);
+    await this.chatRepoService.storeMessage('assistant', res);
   }
 }

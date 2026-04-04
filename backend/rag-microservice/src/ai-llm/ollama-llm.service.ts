@@ -26,8 +26,12 @@ export class OllamaLlmService implements ILLMService {
       messages: [
         ...(pastMessages ?? []),
         {
-          role: 'user',
+          role: 'system',
           content: await this.buildContext(prompt),
+        },
+        {
+          role: 'user',
+          content: prompt,
         },
       ],
       stream: true,

@@ -11,6 +11,7 @@ import { AiLlmModule } from './ai-llm/ai-llm.module';
 import { AiEmbedderModule } from './ai-embedder/ai-embedder.module';
 import { RerankerModule } from './reranker/reranker.module';
 import { AiRerankerModule } from './ai-reranker/ai-reranker.module';
+import { ChatRepoModule } from './chat-repo/chat-repo.module';
 
 @Module({
   imports: [
@@ -26,7 +27,8 @@ import { AiRerankerModule } from './ai-reranker/ai-reranker.module';
       username: process.env.DB_USERNAME,
       password: process.env.DB_PASSWORD,
       database: process.env.DB_NAME,
-      entities: [EmailChunk],
+      entities: [EmailChunk, ChatModule],
+      autoLoadEntities: true,
       synchronize: true,
     }),
     ContextModule,
@@ -34,6 +36,7 @@ import { AiRerankerModule } from './ai-reranker/ai-reranker.module';
     AiEmbedderModule,
     RerankerModule,
     AiRerankerModule,
+    ChatRepoModule,
   ],
 })
 export class AppModule {}
