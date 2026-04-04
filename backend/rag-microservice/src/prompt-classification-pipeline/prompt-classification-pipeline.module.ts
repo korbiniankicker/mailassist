@@ -5,5 +5,6 @@ import { AiLlmModule } from 'src/ai-llm/ai-llm.module';
 @Module({
   imports: [AiLlmModule],
   providers: [PromptClassificationPipelineService],
+  exports: [PromptClassificationPipelineService],
 })
 export class PromptClassificationPipelineModule {}

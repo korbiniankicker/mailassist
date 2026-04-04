@@ -93,6 +93,7 @@ export class OllamaLlmService implements ILLMService {
     prompt: string,
     messages: MessageDto[],
   ): AsyncGenerator<string> {
+    console.log(messages);
     const response = await this.ollama.chat({
       model: LLM_MODEL,
       messages: [
