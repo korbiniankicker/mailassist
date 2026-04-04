@@ -1,9 +1,16 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotImplementedException } from '@nestjs/common';
 import { ILLMService } from './ILLMService.interface';
 import { ContextService } from 'src/context/context.service';
-import { LLM_MODEL, SYSTEM_PROMPT } from '../common/constants';
+import {
+  LLM_MODEL,
+  QUERY_TYPE,
+  SYSTEM_PROMPT_EMAIL_CONTEXT,
+  SYSTEM_PROMPT_CLASSIFICATION,
+  SYSTEM_PROMPT_CHAT_CONTEXT,
+} from '../common/constants';
 import { Message, Ollama } from 'ollama';
 import { MessageDto } from 'src/common/messages.dto';
+import { SqlParamsDto } from 'src/common/sqlParams.dto';
 
 @Injectable()
 export class OllamaLlmService implements ILLMService {
@@ -12,7 +19,7 @@ export class OllamaLlmService implements ILLMService {
     this.ollama = new Ollama({ host: process.env.OLLAMA_URL });
   }
 
-  async *generateResponse(
+  async *generateEmailContextResponse(
     prompt: string,
     messages?: MessageDto[],
   ): AsyncGenerator<string> {
@@ -49,7 +56,68 @@ export class OllamaLlmService implements ILLMService {
     const context = contextChunks.join('\n');
     const today = new Date().toLocaleString();
 
-    console.log('final content: ' + SYSTEM_PROMPT(context, today));
-    return SYSTEM_PROMPT(context, today);
+    console.log(
+      'final content: \n' + SYSTEM_PROMPT_EMAIL_CONTEXT(context, today),
+    );
+    return SYSTEM_PROMPT_EMAIL_CONTEXT(context, today);
+  }
+
+  async generatePromptClassification(prompt: string): Promise<QUERY_TYPE> {
+    const response = await this.ollama.chat({
+      model: LLM_MODEL,
+      messages: [
+        {
+          role: 'system',
+          content: SYSTEM_PROMPT_CLASSIFICATION,
+        },
+        {
+          role: 'user',
+          content: prompt,
+        },
+      ],
+      format: {
+        type: 'object',
+        properties: {
+          intent: {
+            type: 'string',
+            enum: Object.values(QUERY_TYPE),
+          },
+        },
+        required: ['intent'],
+      },
+    });
+    const { intent } = JSON.parse(response.message.content);
+    return intent as QUERY_TYPE;
+  }
+  async *generateChatContextResponse(
+    prompt: string,
+    messages: MessageDto[],
+  ): AsyncGenerator<string> {
+    const response = await this.ollama.chat({
+      model: LLM_MODEL,
+      messages: [
+        {
+          role: 'system',
+          content: SYSTEM_PROMPT_CHAT_CONTEXT,
+        },
+        ...(messages ?? []),
+        {
+          role: 'user',
+          content: prompt,
+        },
+      ],
+      stream: true,
+    });
+
+    for await (let res of response) {
+      if (res.message.content) {
+        yield res.message.content;
+      }
+    }
+  }
+
+  async generateSqlQueryParams(prompt: string): Promise<SqlParamsDto> {
+    //TODO
+    throw NotImplementedException;
   }
 }

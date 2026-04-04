@@ -12,6 +12,7 @@ import { AiEmbedderModule } from './ai-embedder/ai-embedder.module';
 import { RerankerModule } from './reranker/reranker.module';
 import { AiRerankerModule } from './ai-reranker/ai-reranker.module';
 import { ChatRepoModule } from './chat-repo/chat-repo.module';
+import { PromptClassificationPipelineModule } from './prompt-classification-pipeline/prompt-classification-pipeline.module';
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { ChatRepoModule } from './chat-repo/chat-repo.module';
     RerankerModule,
     AiRerankerModule,
     ChatRepoModule,
+    PromptClassificationPipelineModule,
   ],
 })
 export class AppModule {}

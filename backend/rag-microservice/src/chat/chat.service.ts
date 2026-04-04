@@ -17,7 +17,7 @@ export class ChatService {
       this.chatHistory = await this.chatRepoService.findAll();
     }
     let res: string = '';
-    for await (let response of this.llmService.generateResponse(
+    for await (let response of this.llmService.generateEmailContextResponse(
       prompt,
       this.chatHistory,
     )) {
