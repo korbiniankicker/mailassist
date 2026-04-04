@@ -16,7 +16,7 @@ export class ChatRepoService {
       const response: MessageDto[] = await this.chatMessageRepo
         .createQueryBuilder('chat_message')
         .select('chat_message.role', 'role')
-        .select('chat_message.content', 'content')
+        .addSelect('chat_message.content', 'content')
         .getRawMany<{ role: string; content: string }>();
       return response;
     } catch (error) {
