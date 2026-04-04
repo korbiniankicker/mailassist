@@ -24,11 +24,11 @@ export class OllamaLlmService implements ILLMService {
     const response = await this.ollama.chat({
       model: LLM_MODEL,
       messages: [
-        ...(pastMessages ?? []),
         {
           role: 'system',
           content: await this.buildContext(prompt),
         },
+        ...(pastMessages ?? []),
         {
           role: 'user',
           content: prompt,
