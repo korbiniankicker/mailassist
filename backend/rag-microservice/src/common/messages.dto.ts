@@ -1,4 +1,4 @@
 export class MessageDto {
-  content: string;
-  role: string;
+  content!: string;
+  role!: string;
 }

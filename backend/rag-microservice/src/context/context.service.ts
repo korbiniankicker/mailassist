@@ -1,14 +1,14 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { EmailChunk } from 'src/email-repo/emailchunk.entity';
+import { EmailChunk } from '../email-repo/emailchunk.entity';
 import { Repository } from 'typeorm';
 import {
   TOP_K,
   MIN_SIMILARITY,
   EMBEDDING_SERVICE_PROVIDER_STRING,
 } from '../common/constants';
-import { RerankerService } from 'src/reranker/reranker.service';
-import { type IEmbeddingService } from 'src/ai-embedder/interfaces/IEmbeddingService.interface';
+import { RerankerService } from '../reranker/reranker.service';
+import { type IEmbeddingService } from '../ai-embedder/interfaces/IEmbeddingService.interface';
 
 @Injectable()
 export class ContextService {

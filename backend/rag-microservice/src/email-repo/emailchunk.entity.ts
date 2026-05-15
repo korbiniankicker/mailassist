@@ -1,26 +1,26 @@
-import { EMBEDDING_VECTOR_DIMESIONS } from 'src/common/constants';
+import { EMBEDDING_VECTOR_DIMESIONS } from '../common/constants';
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()
 export class EmailChunk {
   @PrimaryGeneratedColumn()
-  id: number;
+  id!: number;
 
   @Column()
-  sender: string;
+  sender!: string;
 
   @Column()
-  subject: string;
+  subject!: string;
 
   @Column('timestamptz')
-  date: Date;
+  date!: Date;
 
   @Column()
-  embedded_text: string;
+  embedded_text!: string;
 
   @Column()
-  message_id: string;
+  message_id!: string;
 
   @Column('vector', { length: Number(EMBEDDING_VECTOR_DIMESIONS) })
-  embedding: number[];
+  embedding!: number[];
 }

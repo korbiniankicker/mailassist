@@ -12,6 +12,11 @@ services:
     ports:
       - "8001:8001"
 
+  embedding-microservice:
+    build: ./backend/embedding-microservice
+    ports:
+      - "8002:8002"
+
   db:
     image: pgvector/pgvector:pg17
     container_name: pgvector-db

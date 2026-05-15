@@ -2,11 +2,11 @@ import { Injectable } from '@nestjs/common';
 import { ImapFlow, ListResponse, MailboxLockObject } from 'imapflow';
 import { EmailDto } from '../common/email.dto';
 import { ParsedMail, simpleParser } from 'mailparser';
-import { EmailRepoService } from 'src/email-repo/email-repo.service';
+import { EmailRepoService } from '../email-repo/email-repo.service';
 
 @Injectable()
 export class EmailFetcherService {
-  private client: ImapFlow;
+  private client!: ImapFlow;
 
   constructor(private readonly emailRepoService: EmailRepoService) {}
 

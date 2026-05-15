@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { OllamaLlmService } from 'src/ai-llm/ollama-llm.service';
-import { ChatRepoService } from 'src/chat-repo/chat-repo.service';
-import { MessageDto } from 'src/common/messages.dto';
+import { OllamaLlmService } from '../ai-llm/ollama-llm.service';
+import { ChatRepoService } from '../chat-repo/chat-repo.service';
+import { MessageDto } from '../common/messages.dto';
 
 @Injectable()
 export class ChatService {

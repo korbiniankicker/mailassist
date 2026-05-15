@@ -6,9 +6,9 @@ import {
   EMBEDDING_SERVICE_PROVIDER_STRING,
   OVERLAP_SIZE,
 } from '../common/constants';
-import { EmailChunk } from 'src/email-repo/emailchunk.entity';
-import { EmailDto } from 'src/common/email.dto';
-import { type IEmbeddingService } from 'src/ai-embedder/interfaces/IEmbeddingService.interface';
+import { EmailChunk } from '../email-repo/emailchunk.entity';
+import { EmailDto } from '../common/email.dto';
+import { type IEmbeddingService } from '../ai-embedder/interfaces/IEmbeddingService.interface';
 
 @Injectable()
 export class EmailEmbedderService {

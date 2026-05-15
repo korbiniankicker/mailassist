@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { TOP_N } from 'src/common/constants';
+import { TOP_N } from '../common/constants';
 
 @Injectable()
 export class AiRerankerService {

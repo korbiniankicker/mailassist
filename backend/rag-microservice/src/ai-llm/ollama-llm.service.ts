@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { ILLMService } from './ILLMService.interface';
-import { ContextService } from 'src/context/context.service';
+import { ContextService } from '../context/context.service';
 import { LLM_MODEL, SYSTEM_PROMPT } from '../common/constants';
 import { Message, Ollama } from 'ollama';
-import { MessageDto } from 'src/common/messages.dto';
+import { MessageDto } from '../common/messages.dto';
 
 @Injectable()
 export class OllamaLlmService implements ILLMService {

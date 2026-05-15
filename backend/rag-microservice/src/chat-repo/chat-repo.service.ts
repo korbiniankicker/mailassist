@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ChatMessage } from './chatmessage.entity';
 import { Repository } from 'typeorm';
-import { MessageDto } from 'src/common/messages.dto';
+import { MessageDto } from '../common/messages.dto';
 
 @Injectable()
 export class ChatRepoService {

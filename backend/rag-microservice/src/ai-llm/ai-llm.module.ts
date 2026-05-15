@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { OllamaLlmService } from './ollama-llm.service';
-import { ContextModule } from 'src/context/context.module';
+import { ContextModule } from '../context/context.module';
 
 @Module({
   imports: [ContextModule],
