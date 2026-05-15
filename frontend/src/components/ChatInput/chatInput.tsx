@@ -1,18 +1,26 @@
-import {useState} from "react";
-import type { Message } from "../../types/message";
+import { useState } from "react";
 
-function ChatInput({ addMessage }: { addMessage: (message: Message) => void }) {
+function ChatInput({ addMessage }: { addMessage: (message: string) => void }) {
   const [input, setInput] = useState("");
-  
+
   function handleSend() {
-    addMessage({role: "user", content: input});
-    setInput("");
+    if (input) {
+      addMessage(input);
+      setInput("");
+    }
   }
 
   return (
     <div className="input-group">
-      <input value={input} onChange={e => setInput(e.target.value)} type="text" className="form-control"></input>
-      <button onClick={handleSend} className="btn btn-primary">Send</button>
+      <input
+        value={input}
+        onChange={(e) => setInput(e.target.value)}
+        type="text"
+        className="form-control"
+      ></input>
+      <button onClick={handleSend} className="btn btn-primary">
+        Send
+      </button>
     </div>
   );
 }

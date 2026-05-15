@@ -1,15 +1,13 @@
+import { io, Socket } from "socket.io-client";
+
 export class WsClient {
   private static instance: WsClient;
-  private ws!: WebSocket;
+  private ws!: Socket;
   private connected: boolean = false;
-  private responseQueue: Array<string>;
-  private progressQueue: Array<number>;
 
   constructor() {
+    console.log(import.meta.env.VITE_BACKEND_URL_WS);
     this.connect();
-
-    this.responseQueue = new Array<string>();
-    this.progressQueue = new Array<number>();
   }
 
   public static getInstance() {
@@ -19,34 +17,29 @@ export class WsClient {
     return WsClient.instance;
   }
 
+  public setCallback(type: string, cb: (data: unknown) => void) {
+    this.ws.on(type, cb);
+    return () => this.ws.off(type, cb);
+  }
+
   public sendMessage(type: string, body?: unknown) {
-    if (!this.connected) return;
     if (body) {
-      this.ws.send(JSON.stringify({ type: type, body: body }));
+      this.ws.emit(type, body);
     } else {
-      this.ws.send(JSON.stringify({ type: type }));
+      this.ws.emit(type);
     }
   }
 
   private connect() {
-    this.ws = new WebSocket(import.meta.env.VITE_BACKEND_URL_WS);
+    if (this.connected) return;
 
-    this.ws.onopen = () => {
+    this.ws = io(import.meta.env.VITE_BACKEND_URL_WS);
+
+    this.ws.on("connect_error", (error) => {
+      console.error(error);
+    });
+    this.ws.on("connect", () => {
       this.connected = true;
-    };
-    this.ws.onmessage = (event) => {
-      const { type, data } = JSON.parse(event.data);
-
-      switch (type) {
-        case "response":
-          this.responseQueue.push(data);
-          break;
-        case "progress":
-          this.progressQueue.push(data);
-          break;
-        default:
-          console.warn(`Encountered unkown WS event: ${data}`);
-      }
-    };
+    });
   }
 }
