@@ -2,9 +2,11 @@ import ChatWindow from "./components/ChatWindow/chatWindow";
 
 function App() {
   return (
-    <>
-      <ChatWindow></ChatWindow>
-    </>
+    <div className="justify-content-end">
+      <div className="col-9 mx-3 my-3">
+        <ChatWindow></ChatWindow>
+      </div>
+    </div>
   );
 }
 

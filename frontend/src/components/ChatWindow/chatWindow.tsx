@@ -5,10 +5,7 @@ import type { Message } from "../../types/message";
 import { useWsClient } from "../../api/hooks/useWsClient";
 
 function ChatWindow() {
-  const [messages, setMessages] = useState<Message[]>([
-    { role: "user", content: "msg1" },
-    { role: "system", content: "msg2" },
-  ]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const { sendQuery, progress, response, setResponse } = useWsClient();
 
   function addMessage(message: Message) {
@@ -17,7 +14,7 @@ function ChatWindow() {
 
   function addQuery(content: string) {
     if (response.length > 0) {
-      addMessage({ role: "assistant", content: response.join() });
+      addMessage({ role: "assistant", content: response.join("") });
       setResponse([]);
     }
     addMessage({ role: "user", content: content });
@@ -26,6 +23,9 @@ function ChatWindow() {
 
   return (
     <div className="d-flex flex-column mx-3 bg-light">
+      <div className="fs-3 text-center text-secondary">
+        Your E-Mail assistant is ready - ask anything
+      </div>
       {messages.map((message, index) => {
         if (message.role === "user") {
           return (
