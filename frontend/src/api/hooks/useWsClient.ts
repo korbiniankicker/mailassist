@@ -4,12 +4,14 @@ import { WsClient } from "../websocket/WsClient";
 export const useWsClient = () => {
   const [response, setResponse] = useState<Array<string>>([]);
   const [progress, setProgress] = useState<number>(0);
+  const [thinking, setThinking] = useState<boolean>(false);
 
   useEffect(() => {
     const unsubRes = WsClient.getInstance().setCallback("response", (data) => {
       setResponse((prev) => [...prev, data as string]);
+      if (thinking) setThinking(false);
     });
-    const unsubProg = WsClient.getInstance().setCallback("response", (data) => {
+    const unsubProg = WsClient.getInstance().setCallback("progress", (data) => {
       setProgress(data as number);
     });
     return () => {
@@ -20,7 +22,8 @@ export const useWsClient = () => {
 
   const sendQuery = (prompt: string) => {
     WsClient.getInstance().sendMessage("query", { prompt: prompt });
+    setThinking(true);
   };
 
-  return { sendQuery, response, progress, setResponse };
+  return { sendQuery, response, progress, setResponse, thinking };
 };

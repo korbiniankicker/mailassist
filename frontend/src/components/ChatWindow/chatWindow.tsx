@@ -6,7 +6,7 @@ import { useWsClient } from "../../api/hooks/useWsClient";
 
 function ChatWindow() {
   const [messages, setMessages] = useState<Message[]>([]);
-  const { sendQuery, progress, response, setResponse } = useWsClient();
+  const { sendQuery, response, setResponse, thinking } = useWsClient();
 
   function addMessage(message: Message) {
     setMessages((prev) => [...prev, message]);
@@ -50,6 +50,14 @@ function ChatWindow() {
           className="d-flex justify-content-start w-100 my-1"
         >
           <ChatMessage text={response.join("")}></ChatMessage>
+        </div>
+      )}
+      {thinking && response.length === 0 && (
+        <div
+          key={messages.length + 2}
+          className="d-flex justify-content-start w-100 my-1"
+        >
+          <ChatMessage text={"..."}></ChatMessage>
         </div>
       )}
       <ChatInput addMessage={addQuery}></ChatInput>
