@@ -17,6 +17,15 @@ services:
     ports:
       - "8002:8002"
 
+  nginx:
+    build:
+      context: .
+      dockerfile: nginx/Dockerfile
+    ports: "8080:80"
+    args:
+      VITE_BACKEND_URL_WS: ${VITE_BACKEND_URL_WS}
+
+
   db:
     image: pgvector/pgvector:pg17
     container_name: pgvector-db
