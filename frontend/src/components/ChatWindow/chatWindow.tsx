@@ -22,10 +22,7 @@ function ChatWindow() {
   }
 
   return (
-    <div className="d-flex flex-column mx-3 bg-light">
-      <div className="fs-3 text-center text-secondary">
-        Your E-Mail assistant is ready - ask anything
-      </div>
+    <div className="d-flex flex-column mx-3">
       {messages.map((message, index) => {
         if (message.role === "user") {
           return (
@@ -60,7 +57,9 @@ function ChatWindow() {
           <ChatMessage text={"..."}></ChatMessage>
         </div>
       )}
-      <ChatInput addMessage={addQuery}></ChatInput>
+      <div className="my-3">
+        <ChatInput addMessage={addQuery}></ChatInput>
+      </div>
     </div>
   );
 }
