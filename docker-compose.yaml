@@ -4,6 +4,7 @@ services:
   rag-microservice:
     depends_on:
       - db
+      - ollama
     build: ./backend/rag-microservice
     ports:
       - "3000:3000"
@@ -21,14 +22,14 @@ services:
     build:
       context: .
       dockerfile: nginx/Dockerfile
-    ports: "8080:80"
+    ports: 
+      - "8080:80"
     args:
       VITE_BACKEND_URL_WS: ${VITE_BACKEND_URL_WS}
 
 
   db:
     image: pgvector/pgvector:pg17
-    container_name: pgvector-db
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
@@ -38,13 +39,14 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
 
-  #ollama:
-  #  image: ollama/ollama
-  #  container_name: ollama-services
-  #  ports:
-  #    - "11434:11434"
-  #  volumes:
-  #    - ollama_data:/root/.ollama
+  ollama:
+    build:
+      context: ./ollama
+      dockerfile: Dockerfile
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
 
 volumes:
   pgdata:
