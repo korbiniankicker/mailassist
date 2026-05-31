@@ -1,4 +1,4 @@
-name: email-rag
+name: mailassist
 
 services:
   rag-microservice:
