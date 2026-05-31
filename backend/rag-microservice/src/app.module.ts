@@ -12,6 +12,7 @@ import { AiEmbedderModule } from './ai-embedder/ai-embedder.module';
 import { RerankerModule } from './reranker/reranker.module';
 import { AiRerankerModule } from './ai-reranker/ai-reranker.module';
 import { ChatRepoModule } from './chat-repo/chat-repo.module';
+import { ChatMessage } from './chat-repo/chatmessage.entity';
 
 @Module({
   imports: [
@@ -27,8 +28,7 @@ import { ChatRepoModule } from './chat-repo/chat-repo.module';
       username: process.env.DB_USERNAME,
       password: process.env.DB_PASSWORD,
       database: process.env.DB_NAME,
-      entities: [EmailChunk, ChatModule],
-      autoLoadEntities: true,
+      entities: [EmailChunk, ChatMessage],
       synchronize: true,
     }),
     ContextModule,

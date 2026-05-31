@@ -6,7 +6,7 @@ import {
 import { Socket } from 'socket.io';
 import { EmailEmbedderService } from './email-embedder.service';
 
-@WebSocketGateway()
+@WebSocketGateway({ cors: true, namespace: 'api' })
 export class EmailEmbedderGateway {
   constructor(private readonly emailEmbedderService: EmailEmbedderService) {}
   @SubscribeMessage('ingest')
