@@ -65,7 +65,7 @@ nginx :8080 ──────────────────────�
 
 ### Ingestion pipeline
 
-When an ingest message is sent, the email-fetcher module retrieves new emails from the configured IMAP inbox, formats them and passes them to the ingestion pipeline where they are chunked, embedded (using either the HuggingFace model via the Python microservice or the Ollama model) and stored in PostgreSQL with pgvector. For each ingested chunk, a progress update is streamed back to the client
+When an ingest message is sent, the email-fetcher module retrieves new emails from the configured IMAP inbox, formats them and passes them to the ingestion pipeline queue where they are chunked, embedded (using either the HuggingFace model via the Python microservice or the Ollama model) and stored in PostgreSQL with pgvector. For each ingested chunk, a progress update is streamed back to the client
 
 ### Retrieval pipeline
 
@@ -99,7 +99,7 @@ Both the ingestion progress and LLM response are streamed back to the client via
 This is a learning project, and the current architecture has some relevant constraints:
 
 **Semantic-only retrieval:**
-The retrieval pipeline is purely vector-based, which means it works well for semantic queries like _“emails about the project deadline”_ but poorly for queries requiring metadata like \_"How many emails did I get from Google" or combined semantic and metadata querying.
+The retrieval pipeline is purely vector-based, which means it works well for semantic queries like _“emails about the project deadline”_ but poorly for queries requiring metadata like _"How many emails did I get from Google"_ or combined semantic and metadata querying.
 
 **No tool use or multi-step reasoning:**
 The LLM receives a flat list of chunks deemed relevant by the retrieval pipeline, plus the prompt. There’s no agentic layer, no tool use, and no chaining of multiple calls. Therefore, queries that require reasoning across multiple steps or combining different types of information aren't yet handled well.
