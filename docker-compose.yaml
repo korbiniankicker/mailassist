@@ -3,11 +3,17 @@ name: email-rag
 services:
   rag-microservice:
     depends_on:
-      - db
-      - ollama
+      db:
+        condition: service_healthy
+      ollama:
+        condition: service_healthy
     build: ./backend/rag-microservice
     ports:
       - "3000:3000"
+    env_file:
+      - .env
+      - ./backend/rag-microservice/.env
+
   reranking-microservice:
     build: ./backend/reranking-microservice
     ports:
@@ -22,11 +28,10 @@ services:
     build:
       context: .
       dockerfile: nginx/Dockerfile
-    ports: 
+      args:
+        VITE_BACKEND_URL_WS: ${VITE_BACKEND_URL_WS}
+    ports:
       - "8080:80"
-    args:
-      VITE_BACKEND_URL_WS: ${VITE_BACKEND_URL_WS}
-
 
   db:
     image: pgvector/pgvector:pg17
@@ -38,6 +43,13 @@ services:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d email-rag"]
+      interval: 5s
+      timeout: 10s
+      retries: 40
+      start_period: 10s
+
 
   ollama:
     build:
@@ -47,6 +59,12 @@ services:
       - "11434:11434"
     volumes:
       - ollama_data:/root/.ollama
+    healthcheck:
+      test: ["CMD-SHELL", "ollama list | grep -q 'mistral:7b' && ollama list | grep -q 'nomic-embed-text'"]
+      interval: 15s
+      timeout: 10s
+      retries: 40
+      start_period: 600s
 
 volumes:
   pgdata:
