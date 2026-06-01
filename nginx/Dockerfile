@@ -9,6 +9,7 @@ RUN npm install
 COPY /frontend/ .
 
 ARG VITE_BACKEND_URL_WS
+ENV VITE_BACKEND_URL_WS=$VITE_BACKEND_URL_WS
 
 RUN npm run build
 

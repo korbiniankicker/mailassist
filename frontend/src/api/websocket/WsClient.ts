@@ -33,7 +33,17 @@ export class WsClient {
   private connect() {
     if (this.connected) return;
 
-    this.ws = io(import.meta.env.VITE_BACKEND_URL_WS);
+    const backendUrl = String(import.meta.env.VITE_BACKEND_URL_WS)
+      .trim()
+      .replace(/^ws/i, "http")
+      .replace(/\/+$/, "");
+
+    // URL path is the Socket.IO namespace (e.g. http://host:8080/api → namespace /api).
+    // Transport always uses path /socket.io (proxied by nginx in Docker).
+    this.ws = io(backendUrl, {
+      path: "/socket.io",
+      transports: ["polling", "websocket"],
+    });
 
     this.ws.on("connect_error", (error) => {
       console.error(error);

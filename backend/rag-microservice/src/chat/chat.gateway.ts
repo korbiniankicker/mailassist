@@ -7,7 +7,7 @@ import {
 } from '@nestjs/websockets';
 import { ChatService } from './chat.service';
 
-@WebSocketGateway({ cors: true, namespace: 'api' })
+@WebSocketGateway({ cors: true, namespace: '/api' })
 export class ChatGateway {
   constructor(private readonly chatService: ChatService) {}
 

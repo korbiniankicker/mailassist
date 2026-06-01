@@ -13,16 +13,22 @@ services:
     env_file:
       - .env
       - ./backend/rag-microservice/.env
+    networks:
+      - mailassist
 
   reranking-microservice:
     build: ./backend/reranking-microservice
     ports:
       - "8001:8001"
+    networks:
+      - mailassist
 
   embedding-microservice:
     build: ./backend/embedding-microservice
     ports:
       - "8002:8002"
+    networks:
+      - mailassist
 
   nginx:
     build:
@@ -32,13 +38,18 @@ services:
         VITE_BACKEND_URL_WS: ${VITE_BACKEND_URL_WS}
     ports:
       - "8080:80"
+    depends_on:
+      rag-microservice:
+        condition: service_started
+    networks:
+      - mailassist
 
   db:
     image: pgvector/pgvector:pg17
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: email-rag
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
     ports:
       - "5432:5432"
     volumes:
@@ -49,7 +60,8 @@ services:
       timeout: 10s
       retries: 40
       start_period: 10s
-
+    networks:
+      - mailassist
 
   ollama:
     build:
@@ -65,6 +77,12 @@ services:
       timeout: 10s
       retries: 40
       start_period: 600s
+    networks:
+      - mailassist
+
+networks:
+  mailassist:
+    name: mailassist
 
 volumes:
   pgdata:
