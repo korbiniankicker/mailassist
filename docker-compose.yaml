@@ -7,6 +7,10 @@ services:
         condition: service_healthy
       ollama:
         condition: service_healthy
+      embedding-microservice:
+        condition: service_healthy
+      reranking-microservice:
+        condition: service_healthy
     build: ./backend/rag-microservice
     ports:
       - "3000:3000"
@@ -20,6 +24,18 @@ services:
     build: ./backend/reranking-microservice
     ports:
       - "8001:8001"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; r=urllib.request.urlopen('http://127.0.0.1:8001/health'); exit(0 if r.status == 200 else 1)",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 120s
     networks:
       - mailassist
 
@@ -27,6 +43,18 @@ services:
     build: ./backend/embedding-microservice
     ports:
       - "8002:8002"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; r=urllib.request.urlopen('http://127.0.0.1:8002/health'); exit(0 if r.status == 200 else 1)",
+        ]
+      interval: 15s
+      timeout: 10s
+      retries: 40
+      start_period: 600s
     networks:
       - mailassist
 
