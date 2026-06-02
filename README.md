@@ -33,7 +33,7 @@ docker compose up -d --build
 ```
 
 The app is available at `http://localhost:8080`.  
-If running on another machine in the same network, replace `localhost` with that machine’s IP.
+If running on another machine in the same network, replace `localhost` with that machine’s IP, but rememer to set the VITE_BACKEND_URL env variable to you machine's IP before building.
 
 On first startup, Ollama will automatically download:
 
@@ -111,10 +111,10 @@ Seeing as how this mainly a learning project, I will probably not make any signi
 
 ## Roadmap
 
-- [ ] Complete frontend (ingestion trigger, UX improvements)
-- [ ] OAuth-based email authentication (replace IMAP credentials)
+- [ ] Complete frontend
+- [ ] OAuth-based email authentication
 - [ ] Multi-user support
 - [ ] Configurable model selection
 - [ ] Support for external models via API key
-- [ ] Hybrid retrieval: combine vector similarity with structured metadata queries (sender, date, count) to support non-semantic queries
-- [ ] Tool use / agentic layer to enable multi-step reasoning over the inbox
+- [ ] Hybrid retrieval: combine vector similarity with structured metadata queries to support non-semantic queries
+- [ ] Tool use / agentic layer to enable multi-step reasoning

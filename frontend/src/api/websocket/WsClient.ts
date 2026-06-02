@@ -38,8 +38,6 @@ export class WsClient {
       .replace(/^ws/i, "http")
       .replace(/\/+$/, "");
 
-    // URL path is the Socket.IO namespace (e.g. http://host:8080/api → namespace /api).
-    // Transport always uses path /socket.io (proxied by nginx in Docker).
     this.ws = io(backendUrl, {
       path: "/socket.io",
       transports: ["polling", "websocket"],
