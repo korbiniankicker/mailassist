@@ -13,6 +13,9 @@ import { RerankerModule } from './reranker/reranker.module';
 import { AiRerankerModule } from './ai-reranker/ai-reranker.module';
 import { ChatRepoModule } from './chat-repo/chat-repo.module';
 import { ChatMessage } from './chat-repo/chatmessage.entity';
+import { UserRepoModule } from './user-repo/user-repo.module';
+import { User } from './user-repo/user.entity';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -31,7 +34,7 @@ import { ChatMessage } from './chat-repo/chatmessage.entity';
       username: process.env.DB_USERNAME,
       password: process.env.DB_PASSWORD,
       database: process.env.DB_NAME,
-      entities: [EmailChunk, ChatMessage],
+      entities: [EmailChunk, ChatMessage, User],
       synchronize: true,
     }),
     ContextModule,
@@ -40,6 +43,8 @@ import { ChatMessage } from './chat-repo/chatmessage.entity';
     RerankerModule,
     AiRerankerModule,
     ChatRepoModule,
+    UserRepoModule,
+    AuthModule,
   ],
 })
 export class AppModule {}

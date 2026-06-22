@@ -5,3 +5,4 @@ node_modules
 *.md
 .git
 .gitignore
+.env.development

@@ -1,3 +1,4 @@
+import os
 import threading
 
 from fastapi import FastAPI, HTTPException
@@ -11,7 +12,10 @@ _model_ready = threading.Event()
 
 def _load_model() -> None:
     global _model
-    _model = SentenceTransformer("intfloat/multilingual-e5-large")
+    _model = SentenceTransformer(
+        "intfloat/multilingual-e5-large",
+        device=os.getenv("DEVICE", "cpu"),
+    )
     _model_ready.set()
 
 

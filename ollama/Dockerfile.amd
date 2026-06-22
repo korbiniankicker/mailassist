@@ -1,4 +1,4 @@
-FROM ollama/ollama:0.30.10
+FROM ollama/ollama:0.30.10-rocm
 
 WORKDIR /app
 COPY . .
@@ -6,4 +6,3 @@ COPY . .
 RUN chmod +x ./ollama-start.sh
 
 ENTRYPOINT ["./ollama-start.sh"]
-

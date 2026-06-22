@@ -1,3 +1,4 @@
+import os
 import threading
 
 from fastapi import FastAPI, HTTPException
@@ -11,7 +12,10 @@ _model_ready = threading.Event()
 
 def _load_model() -> None:
     global _model
-    _model = CrossEncoder("cross-encoder/ms-marco-MiniLM-L-6-v2", device="cpu")
+    _model = CrossEncoder(
+        "cross-encoder/ms-marco-MiniLM-L-6-v2",
+        device=os.getenv("DEVICE", "cpu"),
+    )
     _model_ready.set()
 
 

@@ -1,0 +1,10 @@
+services:
+  ollama:
+    build:
+      dockerfile: Dockerfile.external
+    healthcheck:
+      test: "true"
+  rag-microservice:
+    depends_on:
+      ollama:
+        condition: service_started

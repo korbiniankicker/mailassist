@@ -13,7 +13,7 @@ Mailassist lets you chat with your email inbox. Ask it questions like _“Did an
 ### Requirements
 
 - Docker
-- At least 6 GB VRAM (for mistral:7b)
+- At least 6 GB VRAM for the Ollama models (mistral:7b, nomic-embed-text) unless Ollama is running externally
 
 ### 1. Configure environment files
 
@@ -28,19 +28,56 @@ Note: IMAP credentials are a temporary solution — OAuth support is on the road
 
 ### 2. Start the application
 
+Choose the setup that matches your environment:
+
 ```bash
+# Local CPU (default)
 docker compose up -d --build
+
+# Local NVIDIA GPU
+docker compose -f docker-compose.yaml -f docker-compose.nvidia.yaml up -d --build
+
+# Local AMD GPU
+docker compose -f docker-compose.yaml -f docker-compose.amd.yaml up -d --build
+
+# External Ollama (running elsewhere on the network)
+docker compose -f docker-compose.yaml -f docker-compose.external-ollama.yaml up -d --build
 ```
 
 The app is available at `http://localhost:8080`.  
-If running on another machine in the same network, replace `localhost` with that machine’s IP, but rememer to set the VITE_BACKEND_URL env variable to you machine's IP before building.
+If running on another machine in the same network, replace `localhost` with that machine's IP, but rememer to set the VITE_BACKEND_URL env variable to you machine's IP before building.
 
-On first startup, Ollama will automatically download:
+On first startup with a local Ollama, it will automatically download:
 
 - mistral:7b
 - nomic-embed-text
 
-so it may take a while.
+so it may take a while. If using an external Ollama, make sure these models are pulled on that machine.
+
+### GPU acceleration
+
+While running purely on CPU is possible, it will significantly slow down your model and make using the assistant impractical. GPU acceleration is supported for both NVIDIA and AMD GPUs via Docker Compose override files.
+
+Prerequisites:
+
+- **NVIDIA**: Install the [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html) and configure Docker with the `nvidia` runtime.
+- **AMD**: Ensure the ROCm kernel driver is installed and `amdgpu` is loaded on the host.
+
+Start the stack with your GPU vendor:
+
+```bash
+# NVIDIA
+docker compose -f docker-compose.yaml -f docker-compose.nvidia.yaml up -d --build
+
+# AMD
+docker compose -f docker-compose.yaml -f docker-compose.amd.yaml up -d --build
+```
+
+**NVIDIA**: The override passes through all available GPUs to Ollama and both Python microservices (reranking and embeddings), setting `DEVICE=cuda` on the Python services. The official `ollama/ollama` image includes CUDA support out of the box.
+
+**AMD**: The override uses the `ollama/ollama:rocm` base image and mounts the necessary AMD devices (`/dev/kfd`, `/dev/dri`) into the Ollama container. The Python microservices remain on CPU — ROCm support for PyTorch-based services is experimental and not included in this setup.
+
+> If you already run Ollama on another machine on your network, use the `docker-compose.external-ollama.yaml` override instead. It removes the local Ollama container entirely — just point `OLLAMA_URL` at the external address in your `.env` file and make sure `mistral:7b` is pulled on that machine.
 
 ## Architecture
 

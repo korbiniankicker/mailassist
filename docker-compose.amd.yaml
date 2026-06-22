@@ -1,0 +1,11 @@
+services:
+  ollama:
+    build:
+      context: ./ollama
+      dockerfile: Dockerfile.amd
+    devices:
+      - /dev/kfd
+      - /dev/dri
+    group_add:
+      - video
+      - render

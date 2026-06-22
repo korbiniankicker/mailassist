@@ -1,5 +1,6 @@
 import { EMBEDDING_VECTOR_DIMESIONS } from '../common/constants';
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { User } from '../user-repo/user.entity';
 
 @Entity()
 export class EmailChunk {
@@ -23,4 +24,7 @@ export class EmailChunk {
 
   @Column('vector', { length: Number(EMBEDDING_VECTOR_DIMESIONS) })
   embedding!: number[];
+
+  @ManyToOne(() => User, (user) => user.emailChunks)
+  user!: User;
 }

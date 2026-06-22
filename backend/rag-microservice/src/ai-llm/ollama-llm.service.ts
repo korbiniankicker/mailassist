@@ -53,6 +53,7 @@ export class OllamaLlmService implements ILLMService {
     if (process.env.NODE_ENV == 'development') {
       this.logger.log('Final content: ' + SYSTEM_PROMPT(context, today));
     }
+
     return SYSTEM_PROMPT(context, today);
   }
 }
