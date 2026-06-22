@@ -1,4 +1,5 @@
 import { useState } from "react";
+import "bootstrap-icons/font/bootstrap-icons.css";
 
 function ChatInput({ addMessage }: { addMessage: (message: string) => void }) {
   const [input, setInput] = useState("");
@@ -19,7 +20,7 @@ function ChatInput({ addMessage }: { addMessage: (message: string) => void }) {
         className="form-control"
       ></input>
       <button onClick={handleSend} className="btn btn-primary">
-        Send
+        <i className="bi bi-arrow-up-circle-fill"></i>
       </button>
     </div>
   );

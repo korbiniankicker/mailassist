@@ -3,6 +3,7 @@ import ChatMessage from "../ChatMessage/chatMessage";
 import ChatInput from "../ChatInput/chatInput";
 import type { Message } from "../../types/message";
 import { useWsClient } from "../../api/hooks/useWsClient";
+import IngestionReload from "../IngestionReload/IngestionReload";
 
 function ChatWindow() {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -57,6 +58,9 @@ function ChatWindow() {
           <ChatMessage text={"..."}></ChatMessage>
         </div>
       )}
+      <div className="my-3">
+        <IngestionReload></IngestionReload>
+      </div>
       <div className="my-3">
         <ChatInput addMessage={addQuery}></ChatInput>
       </div>

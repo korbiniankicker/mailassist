@@ -20,10 +20,21 @@ export const useWsClient = () => {
     };
   }, []);
 
+  const sendIngestionQuery = () => {
+    WsClient.getInstance().sendMessage("ingest");
+  };
+
   const sendQuery = (prompt: string) => {
     WsClient.getInstance().sendMessage("query", { prompt: prompt });
     setThinking(true);
   };
 
-  return { sendQuery, response, progress, setResponse, thinking };
+  return {
+    sendIngestionQuery,
+    sendQuery,
+    response,
+    progress,
+    setResponse,
+    thinking,
+  };
 };
