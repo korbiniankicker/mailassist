@@ -19,7 +19,7 @@ Mailassist lets you chat with your email inbox. Ask it questions like _“Did an
 
 ```bash
 cp .env.example .env
-cp backend/rag-microservice/.env.example backend/rag-microservice/.env
+cp backend/rag-microservice/.env.example backend/rag-microservice/.env.production
 ```
 
 Edit `backend/rag-microservice/.env` and fill in your IMAP credentials (`host`, `port`, `user`, `password`).
