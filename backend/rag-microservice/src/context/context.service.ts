@@ -1,4 +1,10 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Inject,
+  Injectable,
+  Logger,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { EmailChunk } from '../email-repo/emailchunk.entity';
 import { Repository } from 'typeorm';
@@ -12,6 +18,7 @@ import { type IEmbeddingService } from '../ai-embedder/interfaces/IEmbeddingServ
 
 @Injectable()
 export class ContextService {
+  private readonly logger = new Logger(ContextService.name);
   constructor(
     @InjectRepository(EmailChunk)
     private readonly chunksRepository: Repository<EmailChunk>,
@@ -48,7 +55,11 @@ export class ContextService {
     );
 
     if (!promptEmbedding || promptEmbedding.length === 0) {
-      throw new Error('Failed to generate embedding: returned empty array');
+      this.logger.error('Failed to generate embedding: returned empty array');
+      throw new HttpException(
+        'Failed to generate embedding: returned empty array',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
 
     const results = await this.chunksRepository.query(
@@ -62,7 +73,9 @@ export class ContextService {
       [JSON.stringify(promptEmbedding), MIN_SIMILARITY, TOP_K],
     );
 
-    console.log('---------Vector similarities--------------');
+    if ((process.env.NODE_ENV = 'development')) {
+      this.logger.log('---------Vector similarities--------------');
+    }
     results.forEach((r) => console.log(r.subject, r.similarity));
 
     return results;

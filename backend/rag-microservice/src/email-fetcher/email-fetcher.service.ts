@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ImapFlow, ListResponse, MailboxLockObject } from 'imapflow';
 import { EmailDto } from '../common/email.dto';
 import { ParsedMail, simpleParser } from 'mailparser';
@@ -7,6 +7,7 @@ import { EmailRepoService } from '../email-repo/email-repo.service';
 @Injectable()
 export class EmailFetcherService {
   private client!: ImapFlow;
+  private readonly logger = new Logger(EmailFetcherService.name);
 
   constructor(private readonly emailRepoService: EmailRepoService) {}
 
@@ -22,9 +23,9 @@ export class EmailFetcherService {
     });
     try {
       await this.client.connect();
-      console.log('sucessfully connected!');
+      this.logger.log('sucessfully connected to IMAP host');
     } catch (error) {
-      console.log('Error: ' + error);
+      this.logger.error('Error: ' + error);
     }
   }
 
@@ -39,7 +40,7 @@ export class EmailFetcherService {
       });
       return inboxes;
     } catch (error) {
-      console.log('Error: ' + error);
+      this.logger.error('Error: ' + error);
       await this.disconnect();
       return undefined;
     }
@@ -54,11 +55,11 @@ export class EmailFetcherService {
       await this.client.getMailboxLock(mailboxName);
     try {
       if (!this.client.mailbox) {
-        console.error(`Error: Mailbox ${mailboxName} doesn't exist`);
+        this.logger.error(`Error: Mailbox ${mailboxName} doesn't exist`);
         return;
       }
       if (this.client.mailbox.exists === 0) {
-        console.log('No messages in mailbox');
+        this.logger.log('No messages in mailbox');
         return;
       }
       let count: number = 0;
@@ -72,24 +73,24 @@ export class EmailFetcherService {
             (count / this.client.mailbox.exists) * 100,
           );
           if (!message?.source) {
-            console.warn(
+            this.logger.warn(
               `Message ${message?.envelope?.messageId} has no source, skipped`,
             );
             continue;
           }
           const parsed = await simpleParser(message.source);
           if (!parsed.messageId) {
-            console.warn(
+            this.logger.warn(
               `Message ${parsed.messageId} has no messageId, skipped`,
             );
             continue;
           }
           if (ingestedIds.has(parsed.messageId)) {
-            console.warn('Email already ingested, skipped');
+            this.logger.warn('Email already ingested, skipped');
             continue;
           }
           if (!this.checkMailValidity(parsed)) {
-            console.warn('Email invalid, skipped');
+            this.logger.warn('Email invalid, skipped');
             continue;
           }
           let emailDto: EmailDto = {
@@ -104,12 +105,12 @@ export class EmailFetcherService {
             progress: progress,
           };
         } catch (error) {
-          console.error('Error: Failed to ingest Email - ' + error);
+          this.logger.error('Error: Failed to ingest Email - ' + error);
           continue;
         }
       }
     } catch (error) {
-      console.error('Error: Error opening mailbox - ' + error);
+      this.logger.error('Error: Error opening mailbox - ' + error);
     } finally {
       mailboxLock.release();
       await this.disconnect();
@@ -124,7 +125,7 @@ export class EmailFetcherService {
       !email.text ||
       !email.date
     ) {
-      console.warn(
+      this.logger.warn(
         `unable to fully fetch email: 
           (MESSAGEID)` +
           email.messageId +
@@ -143,7 +144,7 @@ export class EmailFetcherService {
   }
 
   async disconnect() {
-    console.warn('Disconnected!');
+    this.logger.log('Disconnected from IMAP host');
     await this.client.logout();
   }
 }

@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { EmailFetcherService } from '../email-fetcher/email-fetcher.service';
 import { EmailRepoService } from '../email-repo/email-repo.service';
 import {
@@ -12,6 +12,7 @@ import { type IEmbeddingService } from '../ai-embedder/interfaces/IEmbeddingServ
 
 @Injectable()
 export class EmailEmbedderService {
+  private readonly logger = new Logger(EmailEmbedderService.name);
   emailQueue: { message: EmailDto; progress: number }[];
   fetchingComplete: boolean;
 
@@ -55,7 +56,7 @@ export class EmailEmbedderService {
       }
       const mail = this.emailQueue.shift();
       if (!mail) {
-        console.warn(
+        this.logger.warn(
           'Error in mail ingestion pipeline queue: mail object empty',
         );
         continue;
@@ -108,7 +109,7 @@ export class EmailEmbedderService {
     this.fetchingComplete = false;
 
     const filter = this.filterEmails().catch((err) => {
-      console.error('Error fetching emails in EmailEmbedderService: ' + err);
+      this.logger.error('Error fetching emails: ' + err);
       this.fetchingComplete = true;
     });
     for await (let p of this.storeEmailEmbeddings()) {

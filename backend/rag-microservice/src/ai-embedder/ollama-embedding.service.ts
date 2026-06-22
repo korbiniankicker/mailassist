@@ -5,6 +5,7 @@ import { Ollama } from 'ollama';
 @Injectable()
 export class OllamaEmbeddingService implements IEmbeddingService {
   private ollama: Ollama;
+  private readonly logger = new Logger(OllamaEmbeddingService.name);
   constructor() {
     this.ollama = new Ollama({ host: process.env.OLLAMA_URL });
   }
@@ -17,7 +18,7 @@ export class OllamaEmbeddingService implements IEmbeddingService {
     });
 
     if (response.embeddings.length === 0) {
-      console.log('Error: Empty embeddings returned by ollama');
+      this.logger.error('Error: Empty embeddings returned by ollama');
     }
 
     return response.embeddings[0];

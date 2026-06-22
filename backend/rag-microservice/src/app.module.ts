@@ -20,7 +20,10 @@ import { ChatMessage } from './chat-repo/chatmessage.entity';
     EmailFetcherModule,
     EmailEmbedderModule,
     EmailRepoModule,
-    ConfigModule.forRoot({ isGlobal: true }),
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: `.env.${process.env.NODE_ENV}`,
+    }),
     TypeOrmModule.forRoot({
       type: 'postgres',
       host: process.env.DB_HOST,

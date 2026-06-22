@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ChatMessage } from './chatmessage.entity';
 import { Repository } from 'typeorm';
@@ -6,6 +6,7 @@ import { MessageDto } from '../common/messages.dto';
 
 @Injectable()
 export class ChatRepoService {
+  private readonly logger = new Logger(ChatRepoService.name);
   constructor(
     @InjectRepository(ChatMessage)
     private readonly chatMessageRepo: Repository<ChatMessage>,
@@ -20,7 +21,11 @@ export class ChatRepoService {
         .getRawMany<{ role: string; content: string }>();
       return response;
     } catch (error) {
-      throw `Error fetching Message from Database: ${error}`;
+      this.logger.error(`Error fetching message from database: ` + error);
+      throw new HttpException(
+        `Error fetching message from database`,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 
@@ -32,7 +37,11 @@ export class ChatRepoService {
       });
       await this.chatMessageRepo.save(message);
     } catch (error) {
-      throw `Error storing chat message to database: ${error}`;
+      this.logger.error(`Error fetching message from database: ${error}`);
+      throw new HttpException(
+        `Error storing chat message to database:`,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 }

@@ -1,10 +1,12 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { EmailChunk } from './emailchunk.entity';
 import { Repository } from 'typeorm';
 
 @Injectable()
 export class EmailRepoService {
+  private readonly logger = new Logger(EmailRepoService.name);
+
   constructor(
     @InjectRepository(EmailChunk)
     private readonly chunksRepository: Repository<EmailChunk>,
@@ -22,7 +24,11 @@ export class EmailRepoService {
       });
       return await this.chunksRepository.save(_chunk);
     } catch (error) {
-      throw error;
+      this.logger.error('Failed to store email chunk database');
+      throw new HttpException(
+        'Failed to store email chunk database',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 

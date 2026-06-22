@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ILLMService } from './ILLMService.interface';
 import { ContextService } from '../context/context.service';
 import { LLM_MODEL, SYSTEM_PROMPT } from '../common/constants';
@@ -8,6 +8,7 @@ import { MessageDto } from '../common/messages.dto';
 @Injectable()
 export class OllamaLlmService implements ILLMService {
   private ollama: Ollama;
+  private readonly logger = new Logger(OllamaLlmService.name);
   constructor(private readonly contextService: ContextService) {
     this.ollama = new Ollama({ host: process.env.OLLAMA_URL });
   }
@@ -49,7 +50,9 @@ export class OllamaLlmService implements ILLMService {
     const context = contextChunks.join('\n');
     const today = new Date().toLocaleString();
 
-    console.log('final content: ' + SYSTEM_PROMPT(context, today));
+    if (process.env.NODE_ENV == 'development') {
+      this.logger.log('Final content: ' + SYSTEM_PROMPT(context, today));
+    }
     return SYSTEM_PROMPT(context, today);
   }
 }
