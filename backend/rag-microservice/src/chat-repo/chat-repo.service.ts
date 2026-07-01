@@ -1,8 +1,16 @@
-import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ChatMessage } from './chatmessage.entity';
 import { Repository } from 'typeorm';
 import { MessageDto } from '../common/dto/messages.dto';
+import { Conversation } from './conversation.entity';
+import { User } from '../user/user.entity';
 
 @Injectable()
 export class ChatRepoService {
@@ -10,14 +18,25 @@ export class ChatRepoService {
   constructor(
     @InjectRepository(ChatMessage)
     private readonly chatMessageRepo: Repository<ChatMessage>,
+    @InjectRepository(Conversation)
+    private readonly conversationRepo: Repository<Conversation>,
   ) {}
 
-  async findAll(): Promise<MessageDto[]> {
+  async findAll(
+    user_id: number,
+    conversation_id: number,
+  ): Promise<MessageDto[]> {
     try {
       const response: MessageDto[] = await this.chatMessageRepo
         .createQueryBuilder('chat_message')
         .select('chat_message.role', 'role')
         .addSelect('chat_message.content', 'content')
+        .leftJoin('chat_message.conversation', 'conversation')
+        .leftJoin('conversation.user', 'user')
+        .where('conversation.id = :conversation_id', {
+          conversation_id: conversation_id,
+        })
+        .andWhere('user.id = :user_id', { user_id: user_id })
         .getRawMany<{ role: string; content: string }>();
       return response;
     } catch (error) {
@@ -29,11 +48,48 @@ export class ChatRepoService {
     }
   }
 
-  async storeMessage(role: string, content: string) {
+  async createConversation(title: string, user_id: number): Promise<number> {
+    try {
+      const conversation = this.conversationRepo.create({
+        title: title,
+        user: { id: user_id },
+      });
+      await this.chatMessageRepo.save(conversation);
+      return conversation.id;
+    } catch (error) {
+      this.logger.error(`Error fetching message from database: ${error}`);
+      throw new HttpException(
+        `Error storing chat message to database:`,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async getConversationById(
+    conversation_id: number,
+    user_id,
+  ): Promise<Conversation> {
+    try {
+      const conversation = await this.conversationRepo.findOne({
+        where: { id: conversation_id, user: user_id },
+      });
+      if (conversation) {
+        return conversation;
+      } else {
+        throw new HttpException('conversation not found', HttpStatus.NOT_FOUND);
+      }
+    } catch (err) {
+      this.logger.error(err);
+      throw new InternalServerErrorException();
+    }
+  }
+
+  async storeMessage(role: string, content: string, conversation_id: number) {
     try {
       const message = this.chatMessageRepo.create({
         role: role,
         content: content,
+        conversation: { id: conversation_id },
       });
       await this.chatMessageRepo.save(message);
     } catch (error) {

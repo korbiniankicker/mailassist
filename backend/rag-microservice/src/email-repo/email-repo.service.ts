@@ -1,7 +1,14 @@
-import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { EmailChunk } from './emailchunk.entity';
 import { Repository } from 'typeorm';
+import { MIN_SIMILARITY, TOP_K } from '../common/constants';
 
 @Injectable()
 export class EmailRepoService {
@@ -12,7 +19,10 @@ export class EmailRepoService {
     private readonly chunksRepository: Repository<EmailChunk>,
   ) {}
 
-  async storeChunk(emailChunk: EmailChunk): Promise<EmailChunk | null> {
+  async storeChunk(
+    emailChunk: EmailChunk,
+    user_id: number,
+  ): Promise<EmailChunk | null> {
     try {
       const _chunk: EmailChunk = this.chunksRepository.create({
         subject: emailChunk.subject,
@@ -21,6 +31,7 @@ export class EmailRepoService {
         embedded_text: emailChunk.embedded_text,
         message_id: emailChunk.message_id,
         embedding: emailChunk.embedding,
+        user: { id: user_id },
       });
       return await this.chunksRepository.save(_chunk);
     } catch (error) {
@@ -32,10 +43,32 @@ export class EmailRepoService {
     }
   }
 
-  async getAllMessageIds(): Promise<string[]> {
+  async vectorSimilaritySearch(
+    promptEmbedding: number[],
+  ): Promise<EmailChunk[]> {
+    try {
+      const results: EmailChunk[] = await this.chunksRepository.query(
+        `
+          SELECT *
+          FROM email_chunk
+          WHERE 1 - (embedding <=> $1::vector) >= $2
+          ORDER BY embedding <=> $1::vector ASC
+          LIMIT $3
+        `,
+        [JSON.stringify(promptEmbedding), MIN_SIMILARITY, TOP_K],
+      );
+      return results;
+    } catch (err) {
+      this.logger.error(err);
+      throw new InternalServerErrorException();
+    }
+  }
+
+  async getAllMessageIds(user_id: number): Promise<string[]> {
     const result = await this.chunksRepository
       .createQueryBuilder('email_chunk')
       .select('DISTINCT email_chunk.message_id', 'message_id')
+      .where('email_chunk.user = :user_id', { user_id: user_id })
       .getRawMany<{ message_id: string }>();
 
     return result.map((r) => r.message_id);
