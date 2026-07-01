@@ -16,6 +16,7 @@ import { ChatMessage } from './chat-repo/chatmessage.entity';
 import { UserModule } from './user/user.module';
 import { User } from './user/user.entity';
 import { AuthModule } from './auth/auth.module';
+import { JwtModule } from '@nestjs/jwt';
 
 @Module({
   imports: [
@@ -36,6 +37,11 @@ import { AuthModule } from './auth/auth.module';
       database: process.env.DB_NAME,
       entities: [EmailChunk, ChatMessage, User],
       synchronize: true,
+    }),
+    JwtModule.register({
+      global: true,
+      secret: process.env.JWT_SECRET,
+      signOptions: { expiresIn: '600s' },
     }),
     ContextModule,
     AiLlmModule,
