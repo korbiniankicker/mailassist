@@ -26,8 +26,11 @@ export class EmailEmbedderService {
     this.fetchingComplete = false;
   }
 
-  private async filterEmails() {
-    for await (let email of this.emailFetcherService.getMessages('INBOX')) {
+  private async filterEmails(user_Id: number) {
+    for await (let email of this.emailFetcherService.getMessages(
+      'INBOX',
+      user_Id,
+    )) {
       email.message.content = this.stripContentWhitespaces(
         email.message.content,
       );
@@ -90,7 +93,7 @@ export class EmailEmbedderService {
       }
     }
   }
-  private async *storeEmailEmbeddings(): AsyncGenerator<number> {
+  private async *storeEmailEmbeddings(user_id: number): AsyncGenerator<number> {
     for await (let chunk of this.chunkEmails()) {
       let emailChunk: EmailChunk = {
         date: chunk.obj.emailDto.date,
@@ -100,19 +103,19 @@ export class EmailEmbedderService {
         subject: chunk.obj.emailDto.subject,
         message_id: chunk.obj.emailDto.messageId,
       } as EmailChunk;
-      await this.emailStoreService.storeChunk(emailChunk);
+      await this.emailStoreService.storeChunk(emailChunk, user_id);
       yield chunk.progress;
     }
   }
-  async *embedEmails(): AsyncGenerator<number> {
+  async *embedEmails(user_id: number): AsyncGenerator<number> {
     this.emailQueue = [];
     this.fetchingComplete = false;
 
-    const filter = this.filterEmails().catch((err) => {
+    const filter = this.filterEmails(user_id).catch((err) => {
       this.logger.error('Error fetching emails: ' + err);
       this.fetchingComplete = true;
     });
-    for await (let p of this.storeEmailEmbeddings()) {
+    for await (let p of this.storeEmailEmbeddings(user_id)) {
       yield p;
     }
     await filter;

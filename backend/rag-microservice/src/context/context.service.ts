@@ -15,13 +15,13 @@ import {
 } from '../common/constants';
 import { RerankerService } from '../reranker/reranker.service';
 import { type IEmbeddingService } from '../ai-embedder/interfaces/IEmbeddingService.interface';
+import { EmailRepoService } from '../email-repo/email-repo.service';
 
 @Injectable()
 export class ContextService {
   private readonly logger = new Logger(ContextService.name);
   constructor(
-    @InjectRepository(EmailChunk)
-    private readonly chunksRepository: Repository<EmailChunk>,
+    private readonly emailRepoService: EmailRepoService,
     @Inject(EMBEDDING_SERVICE_PROVIDER_STRING)
     private readonly embeddingService: IEmbeddingService,
     private readonly rerankerServive: RerankerService,
@@ -62,21 +62,8 @@ export class ContextService {
       );
     }
 
-    const results = await this.chunksRepository.query(
-      `
-    SELECT *, 1 - (embedding <=> $1::vector) AS similarity
-    FROM email_chunk
-    WHERE 1 - (embedding <=> $1::vector) >= $2
-    ORDER BY embedding <=> $1::vector ASC
-    LIMIT $3
-  `,
-      [JSON.stringify(promptEmbedding), MIN_SIMILARITY, TOP_K],
-    );
-
-    if ((process.env.NODE_ENV = 'development')) {
-      this.logger.log('---------Vector similarities--------------');
-    }
-    results.forEach((r) => console.log(r.subject, r.similarity));
+    const results =
+      await this.emailRepoService.vectorSimilaritySearch(promptEmbedding);
 
     return results;
   }

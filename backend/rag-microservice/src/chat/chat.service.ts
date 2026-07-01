@@ -10,23 +10,38 @@ export class ChatService {
     private readonly chatRepoService: ChatRepoService,
   ) {}
 
-  chatHistory: MessageDto[] = [];
+  async *generateResponse(
+    prompt: string,
+    user_id: number,
+    conversation_id?: number,
+  ): AsyncGenerator<{ response: string; conversation_id: number }> {
+    let convo_id: number;
+    let chatHistory: MessageDto[] = [];
 
-  async *generateResponse(prompt: string): AsyncGenerator<string> {
-    if (this.chatHistory.length === 0) {
-      this.chatHistory = await this.chatRepoService.findAll();
+    if (!conversation_id) {
+      convo_id = await this.chatRepoService.createConversation(prompt, user_id);
+      chatHistory = [];
+    } else {
+      const convo = await this.chatRepoService.getConversationById(
+        conversation_id,
+        user_id,
+      );
+      convo_id = convo.id;
+      chatHistory = await this.chatRepoService.findAll(user_id, convo_id);
     }
+
     let res: string = '';
     for await (let response of this.llmService.generateResponse(
       prompt,
-      this.chatHistory,
+      chatHistory,
     )) {
       res = res + response;
-      yield response;
+      yield {
+        response: response,
+        conversation_id: convo_id,
+      };
     }
-    this.chatHistory.push({ role: 'user', content: prompt });
-    this.chatHistory.push({ role: 'assistant', content: res });
-    await this.chatRepoService.storeMessage('user', prompt);
-    await this.chatRepoService.storeMessage('assistant', res);
+    await this.chatRepoService.storeMessage('user', prompt, convo_id);
+    await this.chatRepoService.storeMessage('assistant', res, convo_id);
   }
 }

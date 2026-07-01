@@ -48,9 +48,12 @@ export class EmailFetcherService {
 
   async *getMessages(
     mailboxName: string,
+    user_id: number,
   ): AsyncGenerator<{ message: EmailDto; progress: number }> {
     await this.connect();
-    const ingestedIds = new Set(await this.emailRepoService.getAllMessageIds());
+    const ingestedIds = new Set(
+      await this.emailRepoService.getAllMessageIds(user_id),
+    );
     let mailboxLock: MailboxLockObject =
       await this.client.getMailboxLock(mailboxName);
     try {
