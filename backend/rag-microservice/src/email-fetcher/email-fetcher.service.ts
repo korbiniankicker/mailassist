@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ImapFlow, ListResponse, MailboxLockObject } from 'imapflow';
-import { EmailDto } from '../common/email.dto';
+import { EmailDto } from '../common/dto/email.dto';
 import { ParsedMail, simpleParser } from 'mailparser';
 import { EmailRepoService } from '../email-repo/email-repo.service';
 

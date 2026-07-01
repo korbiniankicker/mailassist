@@ -2,11 +2,11 @@ import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './user.entity';
 import { QueryFailedError, Repository } from 'typeorm';
-import { CreateUserDto } from '../common/user.dto';
+import { UserDto } from '../common/dto/user.dto';
 
 @Injectable()
-export class UserRepoService {
-  private readonly logger = new Logger(UserRepoService.name);
+export class UserService {
+  private readonly logger = new Logger(UserService.name);
   constructor(
     @InjectRepository(User)
     private readonly userRepo: Repository<User>,
@@ -26,7 +26,7 @@ export class UserRepoService {
     return res;
   }
 
-  async createUser(createUserDto: CreateUserDto) {
+  async createUser(createUserDto: UserDto) {
     if (!createUserDto.username) {
       throw new HttpException(
         'username cannot be empty',
@@ -46,6 +46,7 @@ export class UserRepoService {
 
     try {
       const res = await this.userRepo.save(newUser);
+      return res;
     } catch (err) {
       if (err instanceof QueryFailedError && err.driverError.code === '23505') {
         throw new HttpException('Username already exists', HttpStatus.CONFLICT);

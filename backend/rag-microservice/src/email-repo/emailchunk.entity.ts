@@ -1,6 +1,6 @@
 import { EMBEDDING_VECTOR_DIMESIONS } from '../common/constants';
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
-import { User } from '../user-repo/user.entity';
+import { User } from '../user/user.entity';
 
 @Entity()
 export class EmailChunk {

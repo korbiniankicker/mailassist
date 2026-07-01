@@ -5,7 +5,7 @@ import {
   OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { User } from '../user-repo/user.entity';
+import { User } from '../user/user.entity';
 import { ChatMessage } from './chatmessage.entity';
 
 @Entity()

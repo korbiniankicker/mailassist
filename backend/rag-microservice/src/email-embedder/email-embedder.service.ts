@@ -7,7 +7,7 @@ import {
   OVERLAP_SIZE,
 } from '../common/constants';
 import { EmailChunk } from '../email-repo/emailchunk.entity';
-import { EmailDto } from '../common/email.dto';
+import { EmailDto } from '../common/dto/email.dto';
 import { type IEmbeddingService } from '../ai-embedder/interfaces/IEmbeddingService.interface';
 
 @Injectable()

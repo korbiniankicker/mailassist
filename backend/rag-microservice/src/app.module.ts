@@ -13,8 +13,8 @@ import { RerankerModule } from './reranker/reranker.module';
 import { AiRerankerModule } from './ai-reranker/ai-reranker.module';
 import { ChatRepoModule } from './chat-repo/chat-repo.module';
 import { ChatMessage } from './chat-repo/chatmessage.entity';
-import { UserRepoModule } from './user-repo/user-repo.module';
-import { User } from './user-repo/user.entity';
+import { UserModule } from './user/user.module';
+import { User } from './user/user.entity';
 import { AuthModule } from './auth/auth.module';
 
 @Module({
@@ -43,7 +43,7 @@ import { AuthModule } from './auth/auth.module';
     RerankerModule,
     AiRerankerModule,
     ChatRepoModule,
-    UserRepoModule,
+    UserModule,
     AuthModule,
   ],
 })

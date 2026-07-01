@@ -3,7 +3,7 @@ import { ILLMService } from './ILLMService.interface';
 import { ContextService } from '../context/context.service';
 import { LLM_MODEL, SYSTEM_PROMPT } from '../common/constants';
 import { Message, Ollama } from 'ollama';
-import { MessageDto } from '../common/messages.dto';
+import { MessageDto } from '../common/dto/messages.dto';
 
 @Injectable()
 export class OllamaLlmService implements ILLMService {
