@@ -12,10 +12,10 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
-  async registerUser(userDto: UserDto): Promise<number> {
+  async registerUser(userDto: UserDto): Promise<string> {
     if (!userDto.password || !userDto.username) {
       throw new HttpException(
-        'username and password must not be empty',
+        'Username and password must not be empty',
         HttpStatus.BAD_REQUEST,
       );
     }
@@ -24,30 +24,26 @@ export class AuthService {
       : 10;
     const hashedPassword = await bcrypt.hash(userDto.password, saltRounds);
 
-    try {
-      const user = await this.userService.createUser(userDto);
+    const user = await this.userService.createUser({
+      username: userDto.username,
+      password: hashedPassword,
+    });
 
-      return HttpStatus.CREATED;
-    } catch (err) {
-      Logger.error(err);
-      throw new HttpException(
-        'Unable to create user',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
+    const payload = { user_id: user.id, username: user.username };
+    return await this.jwtService.signAsync(payload);
   }
 
   async loginUser(userDto: UserDto): Promise<string> {
     if (!userDto.password || !userDto.username) {
       throw new HttpException(
-        'username and password must not be empty',
+        'Username and password must not be empty',
         HttpStatus.BAD_REQUEST,
       );
     }
     try {
       const user = await this.userService.getUserByName(userDto.username);
       if (!user) {
-        throw new HttpException('user not found', HttpStatus.NOT_FOUND);
+        throw new HttpException('User not found', HttpStatus.NOT_FOUND);
       }
 
       if (await bcrypt.compare(userDto.password, user.hashedPassword)) {
@@ -60,6 +56,9 @@ export class AuthService {
         );
       }
     } catch (err) {
+      if (err instanceof HttpException) {
+        throw err;
+      }
       this.logger.error(err);
       throw new HttpException(
         'Error fetching user information',
