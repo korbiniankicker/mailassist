@@ -1,4 +1,10 @@
-import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+} from '@nestjs/common';
 import { IEmbeddingService } from './interfaces/IEmbeddingService.interface';
 
 @Injectable()
@@ -13,22 +19,27 @@ export class HuggingFaceEmbeddingService implements IEmbeddingService {
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
-    const response = await fetch(process.env.EMBEDDING_MICROSERVICE_URL, {
-      method: 'POST',
-      headers: {
-        'content-type': 'application/json',
-      },
-      body: JSON.stringify({
-        text: text,
-        query: query,
-      }),
-    });
+    try {
+      const response = await fetch(process.env.EMBEDDING_MICROSERVICE_URL, {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify({
+          text: text,
+          query: query,
+        }),
+      });
 
-    const data = await response.json();
+      const data = await response.json();
 
-    if (!data.embedding) {
-      this.logger.error('Error fetching embedding from microservice');
+      if (!data.embedding) {
+        this.logger.error('Error fetching embedding from microservice');
+      }
+      return data.embedding;
+    } catch (error) {
+      this.logger.error(`Error fetching embedding from microservice: ${error}`);
+      throw new InternalServerErrorException();
     }
-    return data.embedding;
   }
 }
