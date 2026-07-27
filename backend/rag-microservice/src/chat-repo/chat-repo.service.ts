@@ -11,6 +11,8 @@ import { Repository } from 'typeorm';
 import { MessageDto } from '../common/dto/messages.dto';
 import { Conversation } from './conversation.entity';
 import { User } from '../user/user.entity';
+import { EmailChunk } from '../email-repo/emailchunk.entity';
+import { Message } from 'ollama';
 
 @Injectable()
 export class ChatRepoService {
@@ -27,7 +29,7 @@ export class ChatRepoService {
     conversation_id: number,
   ): Promise<MessageDto[]> {
     try {
-      const response: MessageDto[] = await this.chatMessageRepo
+      const response = await this.chatMessageRepo
         .createQueryBuilder('chat_message')
         .select('chat_message.role', 'role')
         .addSelect('chat_message.content', 'content')
@@ -37,8 +39,10 @@ export class ChatRepoService {
           conversation_id: conversation_id,
         })
         .andWhere('user.id = :user_id', { user_id: user_id })
-        .getRawMany<{ role: string; content: string }>();
-      return response;
+        .getRawMany();
+      const result: MessageDto[] =
+        response.length > 0 ? (response as MessageDto[]) : [];
+      return result;
     } catch (error) {
       this.logger.error(`Error fetching message from database: ` + error);
       throw new HttpException(
@@ -54,12 +58,12 @@ export class ChatRepoService {
         title: title,
         user: { id: user_id },
       });
-      await this.chatMessageRepo.save(conversation);
+      await this.conversationRepo.insert(conversation);
       return conversation.id;
     } catch (error) {
-      this.logger.error(`Error fetching message from database: ${error}`);
+      this.logger.error(`Error creating conversation: ${error}`);
       throw new HttpException(
-        `Error storing chat message to database:`,
+        `Error creating conversation`,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -67,11 +71,11 @@ export class ChatRepoService {
 
   async getConversationById(
     conversation_id: number,
-    user_id,
+    user_id: number,
   ): Promise<Conversation> {
     try {
       const conversation = await this.conversationRepo.findOne({
-        where: { id: conversation_id, user: user_id },
+        where: { id: conversation_id, user: { id: user_id } },
       });
       if (conversation) {
         return conversation;
@@ -79,8 +83,17 @@ export class ChatRepoService {
         throw new HttpException('conversation not found', HttpStatus.NOT_FOUND);
       }
     } catch (err) {
-      this.logger.error(err);
-      throw new InternalServerErrorException();
+      if (
+        !(
+          err instanceof HttpException &&
+          err.getStatus() == HttpStatus.NOT_FOUND
+        )
+      ) {
+        this.logger.error(err);
+        throw new InternalServerErrorException();
+      } else {
+        throw new HttpException('conversation not found', HttpStatus.NOT_FOUND);
+      }
     }
   }
 
@@ -93,7 +106,7 @@ export class ChatRepoService {
       });
       await this.chatMessageRepo.save(message);
     } catch (error) {
-      this.logger.error(`Error fetching message from database: ${error}`);
+      this.logger.error(`Error storing message to database: ${error}`);
       throw new HttpException(
         `Error storing chat message to database:`,
         HttpStatus.INTERNAL_SERVER_ERROR,
