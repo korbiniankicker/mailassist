@@ -3,7 +3,7 @@ import { ChatModule } from './chat/chat.module';
 import { EmailFetcherModule } from './email-fetcher/email-fetcher.module';
 import { EmailEmbedderModule } from './email-embedder/email-embedder.module';
 import { EmailRepoModule } from './email-repo/email-repo.module';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { EmailChunk } from './email-repo/emailchunk.entity';
 import { ContextModule } from './context/context.module';
@@ -17,6 +17,7 @@ import { UserModule } from './user/user.module';
 import { User } from './user/user.entity';
 import { AuthModule } from './auth/auth.module';
 import { JwtModule } from '@nestjs/jwt';
+import { Conversation } from './chat-repo/conversation.entity';
 
 @Module({
   imports: [
@@ -26,7 +27,7 @@ import { JwtModule } from '@nestjs/jwt';
     EmailRepoModule,
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: `.env.${process.env.NODE_ENV}`,
+      envFilePath: `.env`,
     }),
     TypeOrmModule.forRoot({
       type: 'postgres',
@@ -35,13 +36,20 @@ import { JwtModule } from '@nestjs/jwt';
       username: process.env.DB_USERNAME,
       password: process.env.DB_PASSWORD,
       database: process.env.DB_NAME,
-      entities: [EmailChunk, ChatMessage, User],
+      entities: [EmailChunk, ChatMessage, User, Conversation],
       synchronize: true,
     }),
-    JwtModule.register({
+    JwtModule.registerAsync({
       global: true,
-      secret: process.env.JWT_SECRET,
-      signOptions: { expiresIn: '600s' },
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => {
+        console.log(process.env.JWT_SECRET);
+        return {
+          secret: process.env.JWT_SECRET,
+          signOptions: { expiresIn: '600s' },
+        };
+      },
     }),
     ContextModule,
     AiLlmModule,
