@@ -7,7 +7,7 @@ import {
   WebSocketGateway,
 } from '@nestjs/websockets';
 import { ChatService } from './chat.service';
-import { Logger, UseGuards } from '@nestjs/common';
+import { BadRequestException, Logger, UseGuards } from '@nestjs/common';
 import { WsAuthGuard } from '../auth/wsauth.guard';
 import { QueryDto } from '../common/dto/query.dto';
 import { JwtService } from '@nestjs/jwt';
@@ -46,6 +46,13 @@ export class ChatGateway implements OnGatewayConnection {
     @ConnectedSocket() client: Socket,
   ) {
     let response: string = '';
+    if (!data.prompt) {
+      client.emit(
+        'exception',
+        `Bad Request. Pattern: {"prompt":"your prompt"}`,
+      );
+      return;
+    }
     for await (let chunk of this.chatService.generateResponse(
       data.prompt,
       client.data.user.id,
