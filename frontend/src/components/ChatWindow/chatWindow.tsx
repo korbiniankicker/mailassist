@@ -1,13 +1,49 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import ChatMessage from "../ChatMessage/chatMessage";
 import ChatInput from "../ChatInput/chatInput";
 import type { Message } from "../../types/message";
 import { useWsClient } from "../../api/hooks/useWsClient";
 import IngestionReload from "../IngestionReload/IngestionReload";
 
-function ChatWindow() {
+type Props = {
+  conversationId: number | null;
+  getMessages: (id: number) => Promise<Message[]>;
+  onConversationCreated?: (id: number) => void;
+};
+
+function ChatWindow({ conversationId, getMessages, onConversationCreated }: Props) {
   const [messages, setMessages] = useState<Message[]>([]);
-  const { sendQuery, response, setResponse, thinking } = useWsClient();
+  const { sendQuery, response, setResponse, thinking, error, clearError, activeConversationId: wsActiveId } = useWsClient();
+
+  useEffect(() => {
+    if (!conversationId && wsActiveId) {
+      onConversationCreated?.(wsActiveId);
+    }
+  }, [conversationId, wsActiveId, onConversationCreated]);
+
+  useEffect(() => {
+    let ignore = false;
+    if (conversationId) {
+      getMessages(conversationId).then((data) => {
+        if (!ignore) setMessages(data);
+      }).catch((err) => console.error('[ChatWindow] getMessages failed:', err));
+      setResponse([]);
+      clearError();
+    } else {
+      setMessages([]);
+      setResponse([]);
+      clearError();
+    }
+    return () => { ignore = true; };
+  }, [conversationId, getMessages, setResponse, clearError]);
+
+  useEffect(() => {
+    if (error) {
+      setMessages((prev) => [...prev, { role: "error", content: error }]);
+      setResponse([]);
+      clearError();
+    }
+  }, [error, clearError, setResponse]);
 
   function addMessage(message: Message) {
     setMessages((prev) => [...prev, message]);
@@ -19,7 +55,7 @@ function ChatWindow() {
       setResponse([]);
     }
     addMessage({ role: "user", content: content });
-    sendQuery(content);
+    sendQuery(content, conversationId ?? undefined);
   }
 
   return (
@@ -29,6 +65,15 @@ function ChatWindow() {
           return (
             <div key={index} className="d-flex justify-content-end w-100 my-1">
               <ChatMessage text={message.content}></ChatMessage>
+            </div>
+          );
+        } else if (message.role === "error") {
+          return (
+            <div key={index} className="d-flex justify-content-start w-100 my-1">
+              <div className="alert alert-danger py-1 px-3 mb-0 small" role="alert">
+                <i className="bi bi-exclamation-triangle-fill me-1"></i>
+                {message.content}
+              </div>
             </div>
           );
         } else {
@@ -43,18 +88,12 @@ function ChatWindow() {
         }
       })}
       {response.length > 0 && (
-        <div
-          key={messages.length + 1}
-          className="d-flex justify-content-start w-100 my-1"
-        >
+        <div className="d-flex justify-content-start w-100 my-1">
           <ChatMessage text={response.join("")}></ChatMessage>
         </div>
       )}
       {thinking && response.length === 0 && (
-        <div
-          key={messages.length + 2}
-          className="d-flex justify-content-start w-100 my-1"
-        >
+        <div className="d-flex justify-content-start w-100 my-1">
           <ChatMessage text={"..."}></ChatMessage>
         </div>
       )}

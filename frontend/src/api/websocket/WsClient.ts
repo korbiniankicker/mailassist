@@ -1,14 +1,12 @@
 import { io, Socket } from "socket.io-client";
 
+type Callback = (data: unknown) => void;
+
 export class WsClient {
   private static instance: WsClient;
-  private ws!: Socket;
+  private ws: Socket | null = null;
   private connected: boolean = false;
-
-  constructor() {
-    console.log(import.meta.env.VITE_BACKEND_URL_WS);
-    this.connect();
-  }
+  private subscribers: Map<string, Set<Callback>> = new Map();
 
   public static getInstance() {
     if (!WsClient.instance) {
@@ -17,12 +15,31 @@ export class WsClient {
     return WsClient.instance;
   }
 
-  public setCallback(type: string, cb: (data: unknown) => void) {
-    this.ws.on(type, cb);
-    return () => this.ws.off(type, cb);
+  public setCallback(type: string, cb: Callback) {
+    if (!this.subscribers.has(type)) {
+      this.subscribers.set(type, new Set());
+    }
+    this.subscribers.get(type)!.add(cb);
+    if (this.ws) {
+      this.ws.on(type, cb);
+    }
+    return () => {
+      this.subscribers.get(type)?.delete(cb);
+      this.ws?.off(type, cb);
+    };
+  }
+
+  private attachSubscribers() {
+    if (!this.ws) return;
+    for (const [type, cbs] of this.subscribers) {
+      for (const cb of cbs) {
+        this.ws.on(type, cb);
+      }
+    }
   }
 
   public sendMessage(type: string, body?: unknown) {
+    if (!this.ws) return;
     if (body) {
       this.ws.emit(type, body);
     } else {
@@ -30,8 +47,8 @@ export class WsClient {
     }
   }
 
-  private connect() {
-    if (this.connected) return;
+  public connectWithToken(token: string) {
+    this.disconnect();
 
     const backendUrl = String(import.meta.env.VITE_BACKEND_URL_WS)
       .trim()
@@ -41,13 +58,37 @@ export class WsClient {
     this.ws = io(backendUrl, {
       path: "/socket.io",
       transports: ["polling", "websocket"],
+      auth: { token },
+    });
+
+    this.ws.on("connect", () => {
+      this.connected = true;
+    });
+
+    this.ws.on("disconnect", () => {
+      this.connected = false;
     });
 
     this.ws.on("connect_error", (error) => {
       console.error(error);
     });
-    this.ws.on("connect", () => {
-      this.connected = true;
+
+    this.ws.on("exception", (data: unknown) => {
+      const err = data as { code?: number; message?: string };
+      if (err.code === 401) {
+        window.dispatchEvent(new CustomEvent("auth:expired"));
+      }
     });
+
+    this.attachSubscribers();
+  }
+
+  public disconnect() {
+    if (this.ws) {
+      this.ws.removeAllListeners();
+      this.ws.disconnect();
+      this.ws = null;
+      this.connected = false;
+    }
   }
 }

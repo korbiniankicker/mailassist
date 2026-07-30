@@ -1,18 +1,15 @@
-import ChatWindow from "./components/ChatWindow/chatWindow";
+import { useAuth } from "./api/context/AuthContext";
+import ChatPage from "./pages/ChatPage";
+import LoginPage from "./pages/LoginPage";
 
 function App() {
-  return (
-    <>
-      <div className="col-12 d-flex justify-content-center my-3">
-        <img src="/logo.png" alt="Logo" className="col-4" />
-      </div>
-      <div className="col-12 d-flex justify-content-center">
-        <div className="col-11">
-          <ChatWindow></ChatWindow>
-        </div>
-      </div>
-    </>
-  );
+  const { isAuthenticated } = useAuth();
+
+  if (!isAuthenticated) {
+    return <LoginPage />;
+  }
+
+  return <ChatPage />;
 }
 
 export default App;
