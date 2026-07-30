@@ -1,7 +1,6 @@
 import {
   Column,
   Entity,
-  ManyToMany,
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
@@ -18,6 +17,6 @@ export class ChatMessage {
   @Column()
   content!: string;
 
-  @ManyToOne(() => Conversation, (conversation) => conversation.chatMessages)
+  @ManyToOne(() => Conversation, (conversation) => conversation.chatMessages, { onDelete: 'CASCADE' })
   conversation!: Conversation;
 }

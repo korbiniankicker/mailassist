@@ -25,24 +25,15 @@ export class ChatRepoService {
   ) {}
 
   async findAll(
-    user_id: number,
+    _user_id: number,
     conversation_id: number,
   ): Promise<MessageDto[]> {
     try {
-      const response = await this.chatMessageRepo
-        .createQueryBuilder('chat_message')
-        .select('chat_message.role', 'role')
-        .addSelect('chat_message.content', 'content')
-        .leftJoin('chat_message.conversation', 'conversation')
-        .leftJoin('conversation.user', 'user')
-        .where('conversation.id = :conversation_id', {
-          conversation_id: conversation_id,
-        })
-        .andWhere('user.id = :user_id', { user_id: user_id })
-        .getRawMany();
-      const result: MessageDto[] =
-        response.length > 0 ? (response as MessageDto[]) : [];
-      return result;
+      const messages = await this.chatMessageRepo.find({
+        where: { conversation: { id: conversation_id } },
+        order: { id: 'ASC' },
+      });
+      return messages.map((m) => ({ role: m.role, content: m.content }));
     } catch (error) {
       this.logger.error(`Error fetching message from database: ` + error);
       throw new HttpException(
@@ -108,6 +99,25 @@ export class ChatRepoService {
       this.logger.error(`Error fetching conversations: ${error}`);
       throw new HttpException(
         `Error fetching conversations`,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async deleteConversation(conversation_id: number, user_id: number): Promise<void> {
+    try {
+      const result = await this.conversationRepo.delete({
+        id: conversation_id,
+        user: { id: user_id },
+      });
+      if (result.affected === 0) {
+        throw new HttpException('Conversation not found', HttpStatus.NOT_FOUND);
+      }
+    } catch (error) {
+      if (error instanceof HttpException) throw error;
+      this.logger.error(`Error deleting conversation: ${error}`);
+      throw new HttpException(
+        'Error deleting conversation',
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }

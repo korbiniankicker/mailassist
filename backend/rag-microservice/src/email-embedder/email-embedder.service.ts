@@ -112,8 +112,8 @@ export class EmailEmbedderService {
     this.fetchingComplete = false;
 
     const filter = this.filterEmails(user_id).catch((err) => {
-      this.logger.error('Error fetching emails: ' + err);
       this.fetchingComplete = true;
+      throw err;
     });
     for await (let p of this.storeEmailEmbeddings(user_id)) {
       yield p;

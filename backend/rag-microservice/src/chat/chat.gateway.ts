@@ -7,7 +7,7 @@ import {
   WebSocketGateway,
 } from '@nestjs/websockets';
 import { ChatService } from './chat.service';
-import { BadRequestException, Logger, UseGuards } from '@nestjs/common';
+import { Logger, UseGuards } from '@nestjs/common';
 import { WsAuthGuard } from '../auth/wsauth.guard';
 import { QueryDto } from '../common/dto/query.dto';
 import { JwtService } from '@nestjs/jwt';
@@ -49,22 +49,28 @@ export class ChatGateway implements OnGatewayConnection {
     if (!data.prompt) {
       client.emit(
         'exception',
-        `Bad Request. Pattern: {"prompt":"your prompt"}`,
+        { message: 'Bad Request. Pattern: {"prompt":"your prompt"}' },
       );
       return;
     }
-    for await (let chunk of this.chatService.generateResponse(
-      data.prompt,
-      client.data.user.id,
-      data.conversation_id,
-    )) {
-      client.emit('response', chunk);
-      response += chunk;
-    }
-    if (process.env.NODE_ENV == 'development') {
-      this.logger.log(`Prompt: ${data.prompt}
+    try {
+      for await (let chunk of this.chatService.generateResponse(
+        data.prompt,
+        client.data.user.id,
+        data.conversation_id,
+      )) {
+        client.emit('response', chunk);
+        response += chunk;
+      }
+      if (process.env.NODE_ENV == 'development') {
+        this.logger.log(`Prompt: ${data.prompt}
           Response: ${response}
-      `);
+        `);
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Query failed';
+      this.logger.error(`Query error: ${message}`);
+      client.emit('exception', { message });
     }
   }
 }

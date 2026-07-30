@@ -30,19 +30,27 @@ export class ChatService {
       chatHistory = await this.chatRepoService.findAll(user_id, convo_id);
     }
 
-    let res: string = '';
-    for await (let response of this.llmService.generateResponse(
-      prompt,
-      chatHistory,
-      user_id,
-    )) {
-      res = res + response;
-      yield {
-        response: response,
-        conversation_id: convo_id,
-      };
-    }
     await this.chatRepoService.storeMessage('user', prompt, convo_id);
-    await this.chatRepoService.storeMessage('assistant', res, convo_id);
+
+    yield { response: '', conversation_id: convo_id };
+
+    let res: string = '';
+    try {
+      for await (let response of this.llmService.generateResponse(
+        prompt,
+        chatHistory,
+        user_id,
+      )) {
+        res = res + response;
+        yield {
+          response: response,
+          conversation_id: convo_id,
+        };
+      }
+    } finally {
+      if (res) {
+        await this.chatRepoService.storeMessage('assistant', res, convo_id);
+      }
+    }
   }
 }

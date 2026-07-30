@@ -25,11 +25,13 @@ export class EmailFetcherService {
       await this.client.connect();
       this.logger.log('sucessfully connected to IMAP host');
     } catch (error) {
-      this.logger.error('Error: ' + error);
+      const message = `IMAP connection failed: ${error instanceof Error ? error.message : error}`;
+      this.logger.error(message);
+      throw new Error(message);
     }
   }
 
-  async getMailboxes(): Promise<string[] | undefined> {
+  async getMailboxes(): Promise<string[]> {
     await this.connect();
     try {
       let list: ListResponse[] = await this.client.list();
@@ -40,9 +42,10 @@ export class EmailFetcherService {
       });
       return inboxes;
     } catch (error) {
-      this.logger.error('Error: ' + error);
+      const message = `Failed to list mailboxes: ${error instanceof Error ? error.message : error}`;
+      this.logger.error(message);
       await this.disconnect();
-      return undefined;
+      throw new Error(message);
     }
   }
 
@@ -113,7 +116,9 @@ export class EmailFetcherService {
         }
       }
     } catch (error) {
-      this.logger.error('Error: Error opening mailbox - ' + error);
+      const message = `Failed to open mailbox: ${error instanceof Error ? error.message : error}`;
+      this.logger.error(message);
+      throw new Error(message);
     } finally {
       mailboxLock.release();
       await this.disconnect();

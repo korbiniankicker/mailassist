@@ -17,8 +17,8 @@ export class WsAuthGuard implements CanActivate {
     }
 
     try {
-      const payload = await this.jwtService.verifyAsync(token);
-      client.data.user = payload;
+      const payload = await this.jwtService.verifyAsync(token) as { user_id: number; username: string };
+      client.data.user = { id: payload.user_id, username: payload.username };
     } catch {
       throw new WsException('Invalid or expired jwt token');
     }

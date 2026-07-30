@@ -2,7 +2,6 @@ import {
   HttpException,
   HttpStatus,
   Injectable,
-  InternalServerErrorException,
   Logger,
 } from '@nestjs/common';
 import { IEmbeddingService } from './interfaces/IEmbeddingService.interface';
@@ -38,8 +37,9 @@ export class HuggingFaceEmbeddingService implements IEmbeddingService {
       }
       return data.embedding;
     } catch (error) {
-      this.logger.error(`Error fetching embedding from microservice: ${error}`);
-      throw new InternalServerErrorException();
+      const message = `Embedding microservice error: ${error instanceof Error ? error.message : error}`;
+      this.logger.error(message);
+      throw new HttpException(message, HttpStatus.SERVICE_UNAVAILABLE);
     }
   }
 }

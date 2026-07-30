@@ -19,8 +19,8 @@ export class HttpAuthGuard implements CanActivate {
       throw new HttpException('Missing bearer token', HttpStatus.UNAUTHORIZED);
     }
     try {
-      const payload = await this.jwtService.verifyAsync(token);
-      request['user'] = payload;
+      const payload = await this.jwtService.verifyAsync(token) as { user_id: number; username: string };
+      request['user'] = { id: payload.user_id, username: payload.username };
     } catch (err) {
       throw new HttpException(
         'Invalid or expired jwt token',

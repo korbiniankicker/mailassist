@@ -16,17 +16,24 @@ export class AiRerankerService {
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
-    const response = await fetch(process.env.RERANKING_MICROSERVICE_URL, {
-      method: 'POST',
-      headers: {
-        'content-type': 'application/json',
-      },
-      body: JSON.stringify({
-        query: prompt,
-        documents: contextChunks,
-        top_n: TOP_N,
-      }),
-    });
+    let response: Response;
+    try {
+      response = await fetch(process.env.RERANKING_MICROSERVICE_URL, {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify({
+          query: prompt,
+          documents: contextChunks,
+          top_n: TOP_N,
+        }),
+      });
+    } catch (error) {
+      const message = `Reranking microservice error: ${error instanceof Error ? error.message : error}`;
+      this.logger.error(message);
+      throw new HttpException(message, HttpStatus.SERVICE_UNAVAILABLE);
+    }
     if (!response.ok) {
       this.logger.error('Error fetching context reranking: ' + response.status);
       throw new HttpException(
