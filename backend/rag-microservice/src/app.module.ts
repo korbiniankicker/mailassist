@@ -47,7 +47,7 @@ import { Conversation } from './chat-repo/conversation.entity';
         console.log(process.env.JWT_SECRET);
         return {
           secret: process.env.JWT_SECRET,
-          signOptions: { expiresIn: '600s' },
+          signOptions: { expiresIn: '24h' },
         };
       },
     }),

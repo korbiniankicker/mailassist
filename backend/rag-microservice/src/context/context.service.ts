@@ -27,8 +27,8 @@ export class ContextService {
     private readonly rerankerServive: RerankerService,
   ) {}
 
-  async fetchContext(prompt: string): Promise<string[]> {
-    const relevantChunks: EmailChunk[] = await this.fetchRelevantChunks(prompt);
+  async fetchContext(prompt: string, user_id: number): Promise<string[]> {
+    const relevantChunks: EmailChunk[] = await this.fetchRelevantChunks(prompt, user_id);
 
     const seen = new Set<number>();
     const deduplicated = relevantChunks.filter((doc) => {
@@ -48,7 +48,7 @@ export class ContextService {
     return rerankedContext;
   }
 
-  private async fetchRelevantChunks(prompt: string): Promise<EmailChunk[]> {
+  private async fetchRelevantChunks(prompt: string, user_id: number): Promise<EmailChunk[]> {
     const promptEmbedding: number[] = await this.embeddingService.getEmbedding(
       prompt,
       true,
@@ -63,7 +63,7 @@ export class ContextService {
     }
 
     const results =
-      await this.emailRepoService.vectorSimilaritySearch(promptEmbedding);
+      await this.emailRepoService.vectorSimilaritySearch(promptEmbedding, user_id);
 
     return results;
   }

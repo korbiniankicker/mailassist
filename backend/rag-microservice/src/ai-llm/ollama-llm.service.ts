@@ -16,6 +16,7 @@ export class OllamaLlmService implements ILLMService {
   async *generateResponse(
     prompt: string,
     messages?: MessageDto[],
+    user_id?: number,
   ): AsyncGenerator<string> {
     const pastMessages: Message[] =
       messages?.map((m) => ({
@@ -27,7 +28,7 @@ export class OllamaLlmService implements ILLMService {
       messages: [
         {
           role: 'system',
-          content: await this.buildContext(prompt),
+          content: await this.buildContext(prompt, user_id),
         },
         ...(pastMessages ?? []),
         {
@@ -44,8 +45,8 @@ export class OllamaLlmService implements ILLMService {
       }
     }
   }
-  async buildContext(prompt: string): Promise<string> {
-    const contextChunks = await this.contextService.fetchContext(prompt);
+  async buildContext(prompt: string, user_id?: number): Promise<string> {
+    const contextChunks = await this.contextService.fetchContext(prompt, user_id!);
 
     const context = contextChunks.join('\n');
     const today = new Date().toLocaleString();

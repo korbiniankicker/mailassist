@@ -97,6 +97,22 @@ export class ChatRepoService {
     }
   }
 
+  async getConversationsByUserId(user_id: number): Promise<Conversation[]> {
+    try {
+      const conversations = await this.conversationRepo.find({
+        where: { user: { id: user_id } },
+        order: { createdAt: 'DESC' },
+      });
+      return conversations;
+    } catch (error) {
+      this.logger.error(`Error fetching conversations: ${error}`);
+      throw new HttpException(
+        `Error fetching conversations`,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
   async storeMessage(role: string, content: string, conversation_id: number) {
     try {
       const message = this.chatMessageRepo.create({

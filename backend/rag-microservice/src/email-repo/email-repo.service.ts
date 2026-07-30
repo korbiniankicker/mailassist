@@ -45,17 +45,19 @@ export class EmailRepoService {
 
   async vectorSimilaritySearch(
     promptEmbedding: number[],
+    user_id: number,
   ): Promise<EmailChunk[]> {
     try {
       const results: EmailChunk[] = await this.chunksRepository.query(
         `
           SELECT *
           FROM email_chunk
-          WHERE 1 - (embedding <=> $1::vector) >= $2
+          WHERE user_id = $4
+            AND 1 - (embedding <=> $1::vector) >= $2
           ORDER BY embedding <=> $1::vector ASC
           LIMIT $3
         `,
-        [JSON.stringify(promptEmbedding), MIN_SIMILARITY, TOP_K],
+        [JSON.stringify(promptEmbedding), MIN_SIMILARITY, TOP_K, user_id],
       );
       return results;
     } catch (err) {

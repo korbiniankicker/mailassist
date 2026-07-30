@@ -34,6 +34,7 @@ export class ChatService {
     for await (let response of this.llmService.generateResponse(
       prompt,
       chatHistory,
+      user_id,
     )) {
       res = res + response;
       yield {
