@@ -115,6 +115,10 @@ export class EmailEmbedderService {
       this.fetchingComplete = true;
       throw err;
     });
+    // Mark the rejection as handled immediately so the process doesn't crash
+    // on an unhandledRejection while the chunk loop polls below; the error is
+    // still rethrown by `await filter` and propagated to the caller.
+    filter.catch(() => undefined);
     for await (let p of this.storeEmailEmbeddings(user_id)) {
       yield p;
     }

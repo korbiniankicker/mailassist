@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, InternalServerErrorException } from '@nestjs/common';
 import { ILLMService } from './ILLMService.interface';
 import { ContextService } from '../context/context.service';
 import { LLM_MODEL, SYSTEM_PROMPT } from '../common/constants';
@@ -23,26 +23,43 @@ export class OllamaLlmService implements ILLMService {
         role: m.role,
         content: m.content,
       })) ?? [];
-    const response = await this.ollama.chat({
-      model: LLM_MODEL,
-      messages: [
-        {
-          role: 'system',
-          content: await this.buildContext(prompt, user_id),
-        },
-        ...(pastMessages ?? []),
-        {
-          role: 'user',
-          content: prompt,
-        },
-      ],
-      stream: true,
-    });
 
-    for await (let res of response) {
-      if (res.message.content) {
-        yield res.message.content;
+    let produced = false;
+    try {
+      const response = await this.ollama.chat({
+        model: LLM_MODEL,
+        messages: [
+          {
+            role: 'system',
+            content: await this.buildContext(prompt, user_id),
+          },
+          ...(pastMessages ?? []),
+          {
+            role: 'user',
+            content: prompt,
+          },
+        ],
+        stream: true,
+      });
+
+      for await (let res of response) {
+        if (res.message.content) {
+          produced = true;
+          yield res.message.content;
+        }
       }
+
+      if (!produced) {
+        throw new Error('Ollama returned an empty response');
+      }
+    } catch (error) {
+      const detail = error instanceof Error ? error.message : String(error);
+      this.logger.error(
+        `Ollama server at ${process.env.OLLAMA_URL} did not respond correctly: ${detail}`,
+      );
+      throw new InternalServerErrorException(
+        'The AI service is temporarily unavailable. Please try again later.',
+      );
     }
   }
   async buildContext(prompt: string, user_id?: number): Promise<string> {

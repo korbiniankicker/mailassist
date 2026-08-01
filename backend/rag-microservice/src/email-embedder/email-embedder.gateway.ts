@@ -5,7 +5,7 @@ import {
 } from '@nestjs/websockets';
 import { Socket } from 'socket.io';
 import { EmailEmbedderService } from './email-embedder.service';
-import { UseGuards, Logger } from '@nestjs/common';
+import { HttpException, Logger, UseGuards } from '@nestjs/common';
 import { WsAuthGuard } from '../auth/wsauth.guard';
 
 @UseGuards(WsAuthGuard)
@@ -21,10 +21,12 @@ export class EmailEmbedderGateway {
       )) {
         client.emit('progress', progress);
       }
+      client.emit('progress', 100);
     } catch (error) {
+      const code = error instanceof HttpException ? error.getStatus() : 500;
       const message = error instanceof Error ? error.message : 'Ingestion failed';
-      this.logger.error(message);
-      client.emit('exception', { message });
+      this.logger.error(`Ingestion error (${code}): ${message}`);
+      client.emit('exception', { code, message });
     }
   }
 }

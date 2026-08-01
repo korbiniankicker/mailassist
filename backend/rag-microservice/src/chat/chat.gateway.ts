@@ -7,7 +7,7 @@ import {
   WebSocketGateway,
 } from '@nestjs/websockets';
 import { ChatService } from './chat.service';
-import { Logger, UseGuards } from '@nestjs/common';
+import { HttpException, Logger, UseGuards } from '@nestjs/common';
 import { WsAuthGuard } from '../auth/wsauth.guard';
 import { QueryDto } from '../common/dto/query.dto';
 import { JwtService } from '@nestjs/jwt';
@@ -68,9 +68,10 @@ export class ChatGateway implements OnGatewayConnection {
         `);
       }
     } catch (error) {
+      const code = error instanceof HttpException ? error.getStatus() : 500;
       const message = error instanceof Error ? error.message : 'Query failed';
-      this.logger.error(`Query error: ${message}`);
-      client.emit('exception', { message });
+      this.logger.error(`Query error (${code}): ${message}`);
+      client.emit('exception', { code, message });
     }
   }
 }
