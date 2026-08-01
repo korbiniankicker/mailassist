@@ -2,14 +2,18 @@ import { useWsClient } from "../../api/hooks/useWsClient";
 import "bootstrap-icons/font/bootstrap-icons.css";
 
 function IngestionReload() {
-  const { sendIngestionQuery, progress } = useWsClient();
+  const { sendIngestionQuery, progress, isIngesting } = useWsClient();
 
   return (
     <div className="d-flex align-items-center gap-2">
-      <button onClick={sendIngestionQuery} className="btn btn-primary btn-sm">
+      <button
+        onClick={sendIngestionQuery}
+        className="btn btn-primary btn-sm"
+        title="Ingest emails"
+      >
         <i className="bi bi-arrow-clockwise"></i>
       </button>
-      {progress > 0 ? (
+      {isIngesting || progress > 0 ? (
         <div
           className="progress flex-grow-1 align-self-stretch"
           style={{ height: "unset" }}
@@ -21,10 +25,12 @@ function IngestionReload() {
             aria-valuenow={progress}
             aria-valuemin={0}
             aria-valuemax={100}
-          ></div>
+          >
+            {progress > 0 ? `${progress}%` : ""}
+          </div>
         </div>
       ) : (
-        <small className="text-body-secondary">Ringest emails</small>
+        <small className="text-body-secondary">Ingest emails</small>
       )}
     </div>
   );

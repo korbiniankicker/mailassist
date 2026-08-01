@@ -5,7 +5,6 @@ type Callback = (data: unknown) => void;
 export class WsClient {
   private static instance: WsClient;
   private ws: Socket | null = null;
-  private connected: boolean = false;
   private subscribers: Map<string, Set<Callback>> = new Map();
 
   public static getInstance() {
@@ -53,21 +52,19 @@ export class WsClient {
     const backendUrl = String(import.meta.env.VITE_BACKEND_URL_WS)
       .trim()
       .replace(/^ws/i, "http")
-      .replace(/\/+$/, "");
+      .replace(/\/+$/, "")
+      .replace(/:8080\/api$/, ":8080")
+      .replace(/:3000\/api$/, ":3000");
 
-    this.ws = io(backendUrl, {
+    this.ws = io(`${backendUrl}/api`, {
       path: "/socket.io",
       transports: ["polling", "websocket"],
       auth: { token },
     });
 
-    this.ws.on("connect", () => {
-      this.connected = true;
-    });
+    this.ws.on("connect", () => {});
 
-    this.ws.on("disconnect", () => {
-      this.connected = false;
-    });
+    this.ws.on("disconnect", () => {});
 
     this.ws.on("connect_error", (error) => {
       console.error(error);
@@ -88,7 +85,6 @@ export class WsClient {
       this.ws.removeAllListeners();
       this.ws.disconnect();
       this.ws = null;
-      this.connected = false;
     }
   }
 }

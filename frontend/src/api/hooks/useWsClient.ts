@@ -6,6 +6,7 @@ type ResponseChunk = { response: string; conversation_id: number };
 export const useWsClient = () => {
   const [response, setResponse] = useState<Array<string>>([]);
   const [progress, setProgress] = useState<number>(0);
+  const [isIngesting, setIsIngesting] = useState<boolean>(false);
   const [thinking, setThinking] = useState<boolean>(false);
   const [activeConversationId, setActiveConversationId] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -20,13 +21,17 @@ export const useWsClient = () => {
       setActiveConversationId(chunk.conversation_id);
     });
     const unsubProg = WsClient.getInstance().setCallback("progress", (data: unknown) => {
-      setProgress(data as number);
+      const p = Number(data);
+      setProgress(p);
+      if (p >= 100) setIsIngesting(false);
     });
     const unsubErr = WsClient.getInstance().setCallback("exception", (data: unknown) => {
       const err = data as { message?: string };
       if (err.message) setError(err.message);
       setResponse([]);
       setThinking(false);
+      setIsIngesting(false);
+      setProgress(0);
     });
 
     return () => {
@@ -39,6 +44,8 @@ export const useWsClient = () => {
   const clearError = useCallback(() => setError(null), []);
 
   const sendIngestionQuery = useCallback(() => {
+    setProgress(0);
+    setIsIngesting(true);
     WsClient.getInstance().sendMessage("ingest");
   }, []);
 
@@ -55,6 +62,7 @@ export const useWsClient = () => {
     sendQuery,
     response,
     progress,
+    isIngesting,
     setResponse,
     thinking,
     activeConversationId,
