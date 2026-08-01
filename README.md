@@ -159,9 +159,9 @@ Seeing as how this mainly a learning project, I will probably not make any signi
 
 ## Roadmap
 
-- [ ] Complete frontend
+- [x] Complete frontend
 - [ ] OAuth-based email authentication
-- [ ] Multi-user support
+- [x] Multi-user support
 - [ ] Configurable model selection
 - [ ] Support for external models via API key
 - [ ] Hybrid retrieval: combine vector similarity with structured metadata queries to support non-semantic queries
