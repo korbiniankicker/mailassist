@@ -52,7 +52,7 @@ export class EmailRepoService {
         `
           SELECT *
           FROM email_chunk
-          WHERE user_id = $4
+          WHERE "userId" = $4
             AND 1 - (embedding <=> $1::vector) >= $2
           ORDER BY embedding <=> $1::vector ASC
           LIMIT $3
