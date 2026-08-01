@@ -1,6 +1,7 @@
 # compiled output
 /dist
 /node_modules
+seed/node_modules
 /build
 
 # Logs

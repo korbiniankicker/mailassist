@@ -1,0 +1,37 @@
+[
+  {
+    "from": "alice@example.com",
+    "to": "test@localhost",
+    "subject": "Meeting tomorrow",
+    "text": "Hi,\n\nJust a reminder that we have a team meeting tomorrow at 10am. Please bring your project updates.\n\nBest,\nAlice",
+    "date": "2024-01-15T10:00:00Z"
+  },
+  {
+    "from": "bob@corp.com",
+    "to": "test@localhost",
+    "subject": "Invoice #2024-001",
+    "text": "Dear Customer,\n\nPlease find attached the invoice for services rendered in January 2024. The total amount of $1,250.00 is due within 30 days.\n\nBest regards,\nBob Accounting",
+    "date": "2024-01-16T14:30:00Z"
+  },
+  {
+    "from": "carol@newsletter.io",
+    "to": "test@localhost",
+    "subject": "Your weekly tech digest",
+    "text": "This week in tech:\n\n1. New TypeScript 5.5 features announced\n2. PostgreSQL 17 performance improvements\n3. Introduction to vector databases for RAG applications\n\nRead more on our blog.",
+    "date": "2024-01-18T08:00:00Z"
+  },
+  {
+    "from": "dave@support.example.com",
+    "to": "test@localhost",
+    "subject": "Re: Support ticket #4512 - API timeout issue",
+    "text": "We've investigated the API timeout issue you reported. It was caused by a misconfigured load balancer. The fix has been deployed and we're monitoring the situation.\n\nPlease let us know if you experience any further issues.\n\nBest,\nDave\nSenior Support Engineer",
+    "date": "2024-01-19T16:45:00Z"
+  },
+  {
+    "from": "eve@projects.internal",
+    "to": "test@localhost",
+    "subject": "Project Q3 roadmap draft",
+    "text": "Hi team,\n\nI've put together a draft roadmap for Q3. Key initiatives:\n\n1. Platform migration to new infrastructure\n2. Customer portal redesign\n3. Performance optimization targets\n\nPlease review and provide feedback by Friday.\n\nThanks,\nEve",
+    "date": "2024-01-20T11:15:00Z"
+  }
+]

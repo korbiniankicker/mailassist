@@ -1,0 +1,33 @@
+services:
+  greenmail:
+    image: greenmail/standalone:latest
+    ports:
+      - "3993:3993"
+      - "3025:3025"
+    environment:
+      GREENMAIL_ADDITIONAL_OPTS: -Dgreenmail.verbose
+    networks:
+      - mailassist
+
+  seed:
+    build: ./seed
+    depends_on:
+      greenmail:
+        condition: service_started
+    environment:
+      SMTP_HOST: greenmail
+      SMTP_PORT: "3025"
+      SMTP_USER: test@localhost
+      SMTP_PASS: test123
+      SEED_DATASET: ${SEED_DATASET:-default}
+    volumes:
+      - ./seed/datasets:/datasets
+    networks:
+      - mailassist
+
+  rag-microservice:
+    depends_on:
+      greenmail:
+        condition: service_started
+    environment:
+      IMAP_TLS_REJECT_UNAUTHORIZED: "false"
