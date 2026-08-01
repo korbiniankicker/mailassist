@@ -19,6 +19,12 @@ export class AuthService {
         HttpStatus.BAD_REQUEST,
       );
     }
+    if (!userDto.imapHost || !userDto.imapUser || !userDto.imapPass) {
+      throw new HttpException(
+        'Email credentials (IMAP host, username and password) are required',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
     const saltRounds: number = process.env.SALT_ROUNDS
       ? Number(process.env.SALT_ROUNDS)
       : 10;
@@ -27,6 +33,11 @@ export class AuthService {
     const user = await this.userService.createUser({
       username: userDto.username,
       password: hashedPassword,
+      imapHost: userDto.imapHost,
+      imapPort: userDto.imapPort,
+      imapUser: userDto.imapUser,
+      imapPass: userDto.imapPass,
+      imapSecure: userDto.imapSecure,
     });
 
     const payload = { user_id: user.id, username: user.username };
@@ -47,6 +58,15 @@ export class AuthService {
       }
 
       if (await bcrypt.compare(userDto.password, user.hashedPassword)) {
+        if (userDto.imapHost && userDto.imapUser && userDto.imapPass) {
+          await this.userService.updateEmailCredentials(user.id, {
+            host: userDto.imapHost,
+            port: userDto.imapPort ?? user.imapPort ?? 993,
+            username: userDto.imapUser,
+            password: userDto.imapPass,
+            secure: userDto.imapSecure ?? user.imapSecure ?? true,
+          });
+        }
         const payload = { user_id: user.id, username: user.username };
         return await this.jwtService.signAsync(payload);
       } else {

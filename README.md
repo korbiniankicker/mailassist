@@ -22,7 +22,9 @@ cp .env.example .env
 cp backend/rag-microservice/.env.example backend/rag-microservice/.env.production
 ```
 
-Edit `backend/rag-microservice/.env` and fill in your IMAP credentials (`host`, `port`, `user`, `password`).
+Edit `backend/rag-microservice/.env` and fill in the required settings (JWT secret, service URLs).
+
+Email credentials (IMAP host, port, username, password) are configured per user in the app: they are required when registering and can be updated on login. They are stored in the database and no longer read from the environment. The optional `IMAP_TLS_REJECT_UNAUTHORIZED=false` toggle can be set to skip TLS certificate verification for self-signed IMAP servers (testing only).
 
 Note: IMAP credentials are a temporary solution — OAuth support is on the roadmap. You can use a dummy inbox at [ethereal.email](https://ethereal.email) for testing.
 
