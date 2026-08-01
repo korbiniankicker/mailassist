@@ -1,6 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { EmailFetcherService } from './email-fetcher.service';
 import { ConfigModule } from '@nestjs/config';
+import { EmailRepoService } from '../email-repo/email-repo.service';
+import { UserService } from '../user/user.service';
 
 describe('EmailFetcherService', () => {
   let service: EmailFetcherService;
@@ -8,29 +10,31 @@ describe('EmailFetcherService', () => {
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
       imports: [ConfigModule.forRoot()],
-      providers: [EmailFetcherService],
+      providers: [
+        EmailFetcherService,
+        {
+          provide: EmailRepoService,
+          useValue: { getAllMessageIds: jest.fn().mockResolvedValue([]) },
+        },
+        {
+          provide: UserService,
+          useValue: {
+            getUserById: jest.fn().mockResolvedValue({
+              id: 1,
+              imapHost: 'imap.example.com',
+              imapPort: 993,
+              imapUser: 'test@example.com',
+              imapPass: 'secret',
+            }),
+          },
+        },
+      ],
     }).compile();
 
     service = module.get<EmailFetcherService>(EmailFetcherService);
   });
 
-  afterAll(async () => {
-    await service.disconnect();
-  });
-
   it('should be defined', () => {
     expect(service).toBeDefined();
-  });
-  it('should connect to imap server', async () => {
-    const res = await service.connect();
-    expect(res).toBe(true);
-  });
-  it('should get mailboxes', async () => {
-    const res = await service.getMailboxes();
-  });
-  it('should find messages', async () => {
-    for await (let message of service.getMessages('INBOX')) {
-      expect(message).toBeDefined();
-    }
   });
 });

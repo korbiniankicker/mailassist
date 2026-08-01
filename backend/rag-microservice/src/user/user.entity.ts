@@ -13,6 +13,21 @@ export class User {
   @Column()
   hashedPassword!: string;
 
+  @Column({ nullable: true })
+  imapHost?: string;
+
+  @Column({ nullable: true })
+  imapPort?: number;
+
+  @Column({ nullable: true })
+  imapUser?: string;
+
+  @Column({ nullable: true })
+  imapPass?: string;
+
+  @Column({ nullable: true, default: true })
+  imapSecure?: boolean;
+
   @OneToMany(() => EmailChunk, (emailChunk) => emailChunk.user)
   emailChunks!: EmailChunk[];
 

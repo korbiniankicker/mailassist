@@ -1,38 +1,69 @@
-import { Injectable, Logger } from '@nestjs/common';
+import {
+  BadGatewayException,
+  BadRequestException,
+  Injectable,
+  Logger,
+} from '@nestjs/common';
 import { ImapFlow, ListResponse, MailboxLockObject } from 'imapflow';
 import { EmailDto } from '../common/dto/email.dto';
 import { ParsedMail, simpleParser } from 'mailparser';
 import { EmailRepoService } from '../email-repo/email-repo.service';
+import { UserService } from '../user/user.service';
+import { User } from '../user/user.entity';
 
 @Injectable()
 export class EmailFetcherService {
   private client!: ImapFlow;
   private readonly logger = new Logger(EmailFetcherService.name);
 
-  constructor(private readonly emailRepoService: EmailRepoService) {}
+  constructor(
+    private readonly emailRepoService: EmailRepoService,
+    private readonly userService: UserService,
+  ) {}
 
-  async connect() {
-    this.client = new ImapFlow({
-      host: String(process.env.IMAP_HOST),
-      port: Number(process.env.IMAP_PORT),
-      secure: true,
+  private buildImapConfig(user: User) {
+    if (!user.imapHost || !user.imapUser || !user.imapPass) {
+      this.logger.warn(
+        `User ${user.id} has no email credentials configured`,
+      );
+      throw new BadRequestException(
+        'No email credentials configured. Please add your email credentials.',
+      );
+    }
+
+    return {
+      host: user.imapHost,
+      port: user.imapPort ?? 993,
+      secure: user.imapSecure === undefined ? true : user.imapSecure,
+      tls:
+        process.env.IMAP_TLS_REJECT_UNAUTHORIZED === 'false'
+          ? { rejectUnauthorized: false }
+          : undefined,
       auth: {
-        user: String(process.env.IMAP_USER),
-        pass: String(process.env.IMAP_PASS),
+        user: user.imapUser,
+        pass: user.imapPass,
       },
-    });
+    };
+  }
+
+  async connect(userId: number) {
+    const user = await this.userService.getUserById(userId);
+    this.client = new ImapFlow(this.buildImapConfig(user));
     try {
       await this.client.connect();
-      this.logger.log('sucessfully connected to IMAP host');
+      this.logger.log(`Successfully connected to IMAP host`);
+      return true;
     } catch (error) {
-      const message = `IMAP connection failed: ${error instanceof Error ? error.message : error}`;
-      this.logger.error(message);
-      throw new Error(message);
+      const detail = error instanceof Error ? error.message : String(error);
+      this.logger.error(`IMAP connection failed for user ${userId}: ${detail}`);
+      throw new BadGatewayException(
+        'Unable to connect to the email server. Please check your email credentials.',
+      );
     }
   }
 
-  async getMailboxes(): Promise<string[]> {
-    await this.connect();
+  async getMailboxes(userId: number): Promise<string[]> {
+    await this.connect(userId);
     try {
       let list: ListResponse[] = await this.client.list();
       let inboxes: string[] = [];
@@ -53,7 +84,7 @@ export class EmailFetcherService {
     mailboxName: string,
     user_id: number,
   ): AsyncGenerator<{ message: EmailDto; progress: number }> {
-    await this.connect();
+    await this.connect(user_id);
     const ingestedIds = new Set(
       await this.emailRepoService.getAllMessageIds(user_id),
     );
@@ -152,7 +183,12 @@ export class EmailFetcherService {
   }
 
   async disconnect() {
-    this.logger.log('Disconnected from IMAP host');
-    await this.client.logout();
+    if (!this.client) return;
+    try {
+      await this.client.logout();
+      this.logger.log('Disconnected from IMAP host');
+    } catch (error) {
+      this.logger.warn(`Error during disconnect: ${error}`);
+    }
   }
 }
