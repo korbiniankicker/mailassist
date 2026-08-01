@@ -19,14 +19,21 @@ Mailassist lets you chat with your email inbox. Ask it questions like _“Did an
 
 ```bash
 cp .env.example .env
-cp backend/rag-microservice/.env.example backend/rag-microservice/.env.production
+cp backend/rag-microservice/.env.example backend/rag-microservice/.env
 ```
 
-Edit `backend/rag-microservice/.env` and fill in the required settings (JWT secret, service URLs).
+You can edit `backend/rag-microservice/.env` to set your own JWT secret, salt rounds and change to the ollama embedding service if you want to.
 
-Email credentials (IMAP host, port, username, password) are configured per user in the app: they are required when registering and can be updated on login. They are stored in the database and no longer read from the environment. The optional `IMAP_TLS_REJECT_UNAUTHORIZED=false` toggle can be set to skip TLS certificate verification for self-signed IMAP servers (testing only).
+Email credentials (IMAP host, port, username, password) are configured per user in the app: they are required when registering and can be updated on login. The optional `IMAP_TLS_REJECT_UNAUTHORIZED=false` toggle can be set to skip TLS certificate verification for self-signed IMAP servers (testing only).
 
-Note: IMAP credentials are a temporary solution — OAuth support is on the roadmap. You can use a dummy inbox at [ethereal.email](https://ethereal.email) for testing.
+Note: IMAP credentials are a temporary solution - OAuth support is on the roadmap. For testing you can include the bundled GreenMail test mail server by adding the `docker-compose.greenmail.yaml` override (see below). GreenMail has authentication disabled and provides a dummy inbox you can use with any credentials, for example:
+
+- IMAP host: `localhost`
+- IMAP port: `3993`
+- Email username: `test@localhost`
+- Email password: `test123`
+
+The included `seed` service fills the inbox with sample emails so you can test right away.
 
 ### 2. Start the application
 
@@ -44,10 +51,12 @@ docker compose -f docker-compose.yaml -f docker-compose.amd.yaml up -d --build
 
 # External Ollama (running elsewhere on the network)
 docker compose -f docker-compose.yaml -f docker-compose.external-ollama.yaml up -d --build
+
+# With the GreenMail test mail server (dummy inbox, can be combined with the other overrides)
+docker compose -f docker-compose.yaml -f docker-compose.greenmail.yaml up -d --build
 ```
 
-The app is available at `http://localhost:8080`.  
-If running on another machine in the same network, replace `localhost` with that machine's IP, but rememer to set the VITE_BACKEND_URL env variable to you machine's IP before building.
+The app is available at `http://localhost:8080`.
 
 On first startup with a local Ollama, it will automatically download:
 
