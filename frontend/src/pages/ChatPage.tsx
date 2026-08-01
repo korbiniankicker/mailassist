@@ -44,22 +44,20 @@ export default function ChatPage() {
         </div>
       </div>
 
-      <div className="d-flex flex-column flex-grow-1 overflow-hidden">
-        <div className="d-flex align-items-center justify-content-center px-3 py-2 border-bottom position-relative">
-          {!sidebarOpen && (
-            <button className="btn btn-sm btn-outline-secondary position-absolute start-0 ms-2" onClick={() => setSidebarOpen(true)}>
-              <i className="bi bi-list"></i>
+        <div className="d-flex flex-column flex-grow-1 overflow-hidden">
+          <div className="d-flex align-items-center justify-content-center px-3 py-2 border-bottom position-relative">
+            {!sidebarOpen && (
+              <button className="btn btn-sm btn-outline-secondary position-absolute start-0 ms-2" onClick={() => setSidebarOpen(true)}>
+                <i className="bi bi-list"></i>
+              </button>
+            )}
+            <img src="/logo.png" alt="Logo" style={{ width: "33%", height: "auto" }} />
+            <button className="btn btn-outline-secondary btn-sm position-fixed top-0 end-0 m-3" onClick={logout}>
+              Logout
             </button>
-          )}
-          <img src="/logo.png" alt="Logo" style={{ width: "33%", height: "auto" }} />
-          <button className="btn btn-outline-secondary btn-sm position-fixed top-0 end-0 m-3" onClick={logout}>
-            Logout
-          </button>
-        </div>
-        <div className="flex-grow-1 overflow-auto">
+          </div>
           <ChatWindow key={chatKey} conversationId={activeConversationId} getMessages={getMessages} onConversationCreated={(id) => { setActiveConversationId(id); refresh(); }} />
         </div>
-      </div>
     </div>
   );
 }

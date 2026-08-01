@@ -16,6 +16,12 @@ function ChatInput({ addMessage }: { addMessage: (message: string) => void }) {
       <input
         value={input}
         onChange={(e) => setInput(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            handleSend();
+          }
+        }}
         type="text"
         className="form-control"
       ></input>

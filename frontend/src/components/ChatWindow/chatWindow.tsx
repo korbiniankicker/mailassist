@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import ChatMessage from "../ChatMessage/chatMessage";
 import ChatInput from "../ChatInput/chatInput";
 import type { Message } from "../../types/message";
@@ -13,7 +13,12 @@ type Props = {
 
 function ChatWindow({ conversationId, getMessages, onConversationCreated }: Props) {
   const [messages, setMessages] = useState<Message[]>([]);
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const { sendQuery, response, setResponse, thinking, error, clearError, activeConversationId: wsActiveId } = useWsClient();
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+  }, [messages, response, thinking]);
 
   useEffect(() => {
     if (!conversationId && wsActiveId) {
@@ -59,48 +64,51 @@ function ChatWindow({ conversationId, getMessages, onConversationCreated }: Prop
   }
 
   return (
-    <div className="d-flex flex-column mx-3">
-      {messages.map((message, index) => {
-        if (message.role === "user") {
-          return (
-            <div key={index} className="d-flex justify-content-end w-100 my-1">
-              <ChatMessage text={message.content}></ChatMessage>
-            </div>
-          );
-        } else if (message.role === "error") {
-          return (
-            <div key={index} className="d-flex justify-content-start w-100 my-1">
-              <div className="alert alert-danger py-1 px-3 mb-0 small" role="alert">
-                <i className="bi bi-exclamation-triangle-fill me-1"></i>
-                {message.content}
+    <div className="d-flex flex-column flex-grow-1 overflow-hidden">
+      <div className="flex-grow-1 overflow-auto mx-3">
+        {messages.map((message, index) => {
+          if (message.role === "user") {
+            return (
+              <div key={index} className="d-flex justify-content-end w-100 my-1">
+                <ChatMessage text={message.content}></ChatMessage>
               </div>
-            </div>
-          );
-        } else {
-          return (
-            <div
-              key={index}
-              className="d-flex justify-content-start w-100 my-1"
-            >
-              <ChatMessage text={message.content}></ChatMessage>
-            </div>
-          );
-        }
-      })}
-      {response.length > 0 && (
-        <div className="d-flex justify-content-start w-100 my-1">
-          <ChatMessage text={response.join("")}></ChatMessage>
-        </div>
-      )}
-      {thinking && response.length === 0 && (
-        <div className="d-flex justify-content-start w-100 my-1">
-          <ChatMessage text={"..."}></ChatMessage>
-        </div>
-      )}
-      <div className="my-3">
-        <IngestionReload></IngestionReload>
+            );
+          } else if (message.role === "error") {
+            return (
+              <div key={index} className="d-flex justify-content-start w-100 my-1">
+                <div className="alert alert-danger py-1 px-3 mb-0 small" role="alert">
+                  <i className="bi bi-exclamation-triangle-fill me-1"></i>
+                  {message.content}
+                </div>
+              </div>
+            );
+          } else {
+            return (
+              <div
+                key={index}
+                className="d-flex justify-content-start w-100 my-1"
+              >
+                <ChatMessage text={message.content}></ChatMessage>
+              </div>
+            );
+          }
+        })}
+        {response.length > 0 && (
+          <div className="d-flex justify-content-start w-100 my-1">
+            <ChatMessage text={response.join("")}></ChatMessage>
+          </div>
+        )}
+        {thinking && response.length === 0 && (
+          <div className="d-flex justify-content-start w-100 my-1">
+            <ChatMessage text={"..."}></ChatMessage>
+          </div>
+        )}
+        <div ref={messagesEndRef} />
       </div>
-      <div className="my-3">
+      <div className="mx-3 my-3 border-top pt-2">
+        <div className="mb-2">
+          <IngestionReload></IngestionReload>
+        </div>
         <ChatInput addMessage={addQuery}></ChatInput>
       </div>
     </div>
