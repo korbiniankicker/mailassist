@@ -3,10 +3,17 @@ import { TokenManager } from '../auth/TokenManager';
 import { AuthClient } from '../auth/AuthClient';
 import { WsClient } from '../websocket/WsClient';
 
+type EmailCredentials = {
+  host: string;
+  port: number;
+  username: string;
+  password: string;
+};
+
 interface AuthContextValue {
   isAuthenticated: boolean;
-  login: (username: string, password: string) => Promise<void>;
-  register: (username: string, password: string) => Promise<void>;
+  login: (username: string, password: string, emailCredentials?: EmailCredentials) => Promise<void>;
+  register: (username: string, password: string, emailCredentials?: EmailCredentials) => Promise<void>;
   logout: () => void;
 }
 
@@ -30,15 +37,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => window.removeEventListener('auth:expired', onExpired);
   }, []);
 
-  const login = useCallback(async (username: string, password: string) => {
-    const { token } = await AuthClient.login(username, password);
+  const login = useCallback(async (username: string, password: string, emailCredentials?: EmailCredentials) => {
+    const { token } = await AuthClient.login(username, password, emailCredentials);
     TokenManager.setToken(token);
     setIsAuthenticated(true);
     WsClient.getInstance().connectWithToken(token);
   }, []);
 
-  const register = useCallback(async (username: string, password: string) => {
-    const { token } = await AuthClient.register(username, password);
+  const register = useCallback(async (username: string, password: string, emailCredentials?: EmailCredentials) => {
+    const { token } = await AuthClient.register(username, password, emailCredentials);
     TokenManager.setToken(token);
     setIsAuthenticated(true);
     WsClient.getInstance().connectWithToken(token);

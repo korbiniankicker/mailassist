@@ -1,9 +1,6 @@
 import { TokenManager } from '../auth/TokenManager';
 
-const BASE_URL = import.meta.env.VITE_BACKEND_URL_WS
-  .replace(/\/+$/, '')
-  .replace(/:3000\/api$/, ':3000')
-  .replace(/:8080\/api$/, ':8080');
+const BASE_URL = import.meta.env.VITE_BACKEND_URL_WS.replace(/\/+$/, '');
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const token = TokenManager.getToken();
@@ -43,5 +40,11 @@ export const Api = {
   },
   del<T = void>(path: string): Promise<T> {
     return request<T>(path, { method: 'DELETE' });
+  },
+  put<T = void>(path: string, body?: unknown): Promise<T> {
+    return request<T>(path, {
+      method: 'PUT',
+      body: body !== undefined ? JSON.stringify(body) : undefined,
+    });
   },
 };

@@ -1,11 +1,15 @@
-const BASE_URL = import.meta.env.VITE_BACKEND_URL_WS
-  .replace(/\/+$/, '')
-  .replace(/:3000\/api$/, ':3000')
-  .replace(/:8080\/api$/, ':8080');
+const BASE_URL = import.meta.env.VITE_BACKEND_URL_WS.replace(/\/+$/, '');
+
+type EmailCredentials = {
+  host: string;
+  port: number;
+  username: string;
+  password: string;
+};
 
 async function request(
   endpoint: string,
-  body: Record<string, string>,
+  body: Record<string, string | number>,
 ): Promise<{ token: string }> {
   const res = await fetch(`${BASE_URL}${endpoint}`, {
     method: 'POST',
@@ -21,12 +25,26 @@ async function request(
   return res.json();
 }
 
+function withCredentials(
+  base: Record<string, string>,
+  creds?: EmailCredentials,
+): Record<string, string | number> {
+  if (!creds) return base;
+  return {
+    ...base,
+    imapHost: creds.host,
+    imapPort: creds.port,
+    imapUser: creds.username,
+    imapPass: creds.password,
+  };
+}
+
 export const AuthClient = {
-  login(username: string, password: string) {
-    return request('/auth/login', { username, password });
+  login(username: string, password: string, emailCredentials?: EmailCredentials) {
+    return request('/auth/login', withCredentials({ username, password }, emailCredentials));
   },
 
-  register(username: string, password: string) {
-    return request('/auth/register', { username, password });
+  register(username: string, password: string, emailCredentials?: EmailCredentials) {
+    return request('/auth/register', withCredentials({ username, password }, emailCredentials));
   },
 };
