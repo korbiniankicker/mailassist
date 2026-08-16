@@ -1,17 +1,17 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { useAuth } from '../api/context/AuthContext';
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import { useAuth } from "../api/context/AuthContext";
 
-export default function LoginPage({ mode }: { mode: 'login' | 'register' }) {
+export default function LoginPage({ mode }: { mode: "login" | "register" }) {
   const { login, register } = useAuth();
-  const isRegister = mode === 'register';
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [imapHost, setImapHost] = useState('');
-  const [imapPort, setImapPort] = useState('993');
-  const [imapUser, setImapUser] = useState('');
-  const [imapPass, setImapPass] = useState('');
-  const [error, setError] = useState('');
+  const isRegister = mode === "register";
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [imapHost, setImapHost] = useState("");
+  const [imapPort, setImapPort] = useState("993");
+  const [imapUser, setImapUser] = useState("");
+  const [imapPass, setImapPass] = useState("");
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [showEmailFields, setShowEmailFields] = useState(false);
 
@@ -62,7 +62,7 @@ export default function LoginPage({ mode }: { mode: 'login' | 'register' }) {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setError('');
+    setError("");
     setLoading(true);
     try {
       const emailCredentials =
@@ -80,7 +80,7 @@ export default function LoginPage({ mode }: { mode: 'login' | 'register' }) {
         await login(username, password, emailCredentials);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      setError(err instanceof Error ? err.message : "An error occurred");
     } finally {
       setLoading(false);
     }
@@ -91,7 +91,7 @@ export default function LoginPage({ mode }: { mode: 'login' | 'register' }) {
       <div className="card col-10 col-sm-6 col-md-4 col-lg-3 p-4">
         <div className="text-center mb-4">
           <img src="/logo.png" alt="Logo" className="col-8 mb-3" />
-          <h5>{isRegister ? 'Create Account' : 'Sign In'}</h5>
+          <h5>{isRegister ? "Create Account" : "Sign In"}</h5>
         </div>
 
         <form onSubmit={handleSubmit}>
@@ -134,17 +134,16 @@ export default function LoginPage({ mode }: { mode: 'login' | 'register' }) {
                 aria-expanded={showEmailFields}
               >
                 <span className="d-flex justify-content-between align-items-center">
-                  <span>
-                    Email credentials{' '}
-                    <span className="text-body-secondary">(optional)</span>
-                  </span>
-                  <i className={`bi bi-chevron-${showEmailFields ? 'up' : 'down'}`} />
+                  <span>Email credentials </span>
+                  <i
+                    className={`bi bi-chevron-${showEmailFields ? "up" : "down"}`}
+                  />
                 </span>
               </button>
-              <div className={showEmailFields ? '' : 'd-none'}>
+              <div className={showEmailFields ? "" : "d-none"}>
                 <small className="text-body-secondary d-block mt-2">
-                  Leave empty to keep your saved email credentials. If filled in,
-                  these will replace your saved credentials.
+                  Leave empty to keep your saved email credentials. If filled
+                  in, these will replace your saved credentials.
                 </small>
                 {emailFields}
               </div>
@@ -153,13 +152,22 @@ export default function LoginPage({ mode }: { mode: 'login' | 'register' }) {
 
           {error && <div className="alert alert-danger py-2">{error}</div>}
 
-          <button type="submit" className="btn btn-primary w-100 mb-2" disabled={loading}>
-            {loading ? 'Please wait…' : isRegister ? 'Register' : 'Login'}
+          <button
+            type="submit"
+            className="btn btn-primary w-100 mb-2"
+            disabled={loading}
+          >
+            {loading ? "Please wait…" : isRegister ? "Register" : "Login"}
           </button>
         </form>
 
-        <Link className="btn btn-link w-100" to={isRegister ? '/login' : '/register'}>
-          {isRegister ? 'Already have an account? Sign in' : "Don't have an account? Register"}
+        <Link
+          className="btn btn-link w-100"
+          to={isRegister ? "/login" : "/register"}
+        >
+          {isRegister
+            ? "Already have an account? Sign in"
+            : "Don't have an account? Register"}
         </Link>
       </div>
     </div>
